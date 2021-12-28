@@ -1,0 +1,12 @@
+logging:
+  config: classpath:log4j2.xml
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path=/swagger.json
+
+handle:
+  execute-business: false
+  execute-transform: true
+
