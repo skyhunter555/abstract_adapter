@@ -1,3 +1,5 @@
+server:
+  port: 8098
 logging:
   config: classpath:log4j2.xml
 springfox:
@@ -20,4 +22,13 @@ management:
 handle:
   execute-business: false
   execute-transform: true
-
+kafka:
+  bootstrap-servers: "localhost:9091"
+  input-topic-name: "demoInput"
+  producer:
+    send-timeout-seconds: 10
+    acks: "all"
+    retries: 3
+    lingerMs: 1
+    request-timeout-ms: 230
+    delivery-timeout-ms: 1000
