@@ -1,5 +1,6 @@
 package ru.syntez.adapter.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,11 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 public class ApplicationConfig implements WebMvcConfigurer {
+
+    @Bean
+    public ObjectMapper getObjectMapper() {
+        return new ObjectMapper();
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

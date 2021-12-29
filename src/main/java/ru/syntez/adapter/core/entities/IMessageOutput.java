@@ -5,8 +5,4 @@ package ru.syntez.adapter.core.entities;
  * @author Skyhunter
  * @date 26.12.2021
  */
-public interface IMessageOutput {
-
-    String toJsonString();
-
-}
+public interface IMessageOutput {}

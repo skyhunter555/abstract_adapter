@@ -14,7 +14,8 @@ import java.io.Serializable;
 @Data
 public class SampleDocument implements Serializable, IMessageReceived {
 
-    private int docId;
-    private String docNote;
+    private int docId;      //Идентификатор документа.
+    private String docNote; //Описание документа.
+    private String sentAt;  //Время отправки сообщения в формате 'yyyy-MM-dd HH:mm:ss'.
 
 }

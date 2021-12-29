@@ -14,16 +14,7 @@ import java.io.Serializable;
 @Data
 public class OutputSampleDocument implements Serializable, IMessageOutput {
 
-    private int documentId;
-    private String documentDescription;
+    private int documentId;             //Идентификатор документа.
+    private String documentDescription; //Описание документа.
 
-    @Override
-    public String toJsonString() {
-        StringBuilder json = new StringBuilder();
-        json.append("{")
-                .append("\"documentId\":").append(documentId).append(";")
-                .append("\"documentDescription\":\"").append(documentDescription).append("\";")
-            .append("}");
-        return json.toString();
-    }
 }

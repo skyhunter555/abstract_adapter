@@ -1,5 +1,7 @@
 package ru.syntez.adapter.dataproviders.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,16 +37,27 @@ public class AdapterKafkaProducer implements IDataprovider {
     @Value("${kafka.producer.send-timeout-seconds}")
     private Integer sendTimeout;
 
+    private final ObjectMapper mapper;
+
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public AdapterKafkaProducer(KafkaTemplate<String, String> kafkaTemplate) {
+    public AdapterKafkaProducer(ObjectMapper objectMapper, KafkaTemplate<String, String> kafkaTemplate) {
+        this.mapper = objectMapper;
         this.kafkaTemplate = kafkaTemplate;
     }
 
     public HandleMessageResult sendMessage(IMessageOutput messageOutput) {
 
-        String message = messageOutput.toJsonString();
+        //TODO: в зависимости от требований тип ключа - параметризовать
         String messageKey = UUID.randomUUID().toString();
+
+        String message;
+        try {
+            message = mapper.writeValueAsString(messageOutput);
+        } catch (JsonProcessingException e) {
+            LOG.error("Unable to write message as json: " + e.getMessage());
+            return HandleMessageResult.ERROR;
+        }
 
         ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(new ProducerRecord<>(topicName, messageKey, message));
 
