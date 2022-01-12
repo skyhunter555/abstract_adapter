@@ -1,0 +1,147 @@
+asyncapi: '2.2.0'
+info:
+  title: Demo sample document API
+  version: '1.0.0'
+  description: |
+    Демонстрационный пример API для обработки документов, получаемых по http и отправки в Kafka.
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+
+servers:
+  entrypoints:
+    url: 'localhost:8098/sample-document/api/v1'
+    description: Сервер документов http
+    protocol: http
+    protocolVersion: '2.0'
+
+  dataproviders:
+    url: 'localhost:9091'
+    description: Кластер документов Kafka
+    protocol: kafka
+    protocolVersion: '2.5.1'
+
+defaultContentType: application/json
+
+channels:
+  #Прием входящего документа
+  receiveEvents:
+    subscribe:
+      operationId: receiveSampleDocumentRequest
+      bindings:
+        http:
+          servers: [
+              $ref: '#/servers/entrypoints'
+          ]
+      summary: >
+        Прием документа
+      description: >
+        Прием документа по http в формате json:
+        {
+           "docId":0,
+           "docNote":"string"
+        }
+      tags:
+        - name: SampleDocument
+      message:
+        $ref: '#/components/messages/messageReceived'
+    #Ответ
+    publish:
+      operationId: receiveSampleDocumentResponse
+      bindings:
+        http:
+          servers: [
+              $ref: '#/servers/entrypoints'
+          ]
+      summary: >
+        Ответ по успешности обработки документа
+      description: >
+        Если документ успешно обработан то ответ OK, если успеха нет то ERROR.
+      tags:
+        - name: SampleDocument
+      message:
+        oneOf:
+          - $ref: '#/components/messages/resultOK'
+          - $ref: '#/components/messages/resultERROR'
+
+  sendEvents:
+    publish:
+      operationId: sendOutputSampleDocument
+      bindings:
+        kafka:
+          topic: demoInput
+          partitionCount: '10'
+          servers: [
+              $ref: '#/servers/dataproviders'
+          ]
+      summary: >
+        Топик для обработки документов
+      description: >
+        Обработка входящего документа, включающая трансформацию и отправку в топик Кафка
+        событие с ключом UUID и сообщением в формате json:
+        {
+           "documentId":0,
+           "documentDescription":"string"
+        }
+      tags:
+        - name: SampleDocument
+        - name: OutputSampleDocument
+      message:
+        oneOf:
+          - $ref: '#/components/messages/messageOutput'
+
+components:
+  messages:
+    messageReceived:
+      name: SampleDocument
+      title: Входящий документ
+      contentType: application/json
+      summary: Входящий документ
+      payload:
+        $ref: '#/components/schemas/messageReceivedPayload'
+    resultOK:
+      name: ResultOK
+      title: OK
+      payload:
+        type: string
+        value: 'OK'
+    resultERROR:
+      name: ResultERROR
+      title: ERROR
+      payload:
+        type: string
+        value: 'ERROR'
+    messageOutput:
+      name: OutputSampleDocument
+      title: Исходящий документ
+      contentType: application/json
+      summary: Исходящий документ
+      payload:
+        $ref: '#/components/schemas/messageOutputPayload'
+  schemas:
+    messageReceivedPayload:
+      type: object
+      properties:
+        docId:
+          type: integer
+          minimum: 0
+          description: Идентификатор документа.
+        docNote:
+          type: string
+          description: Описание документа.
+        sentAt:
+          $ref: '#/components/schemas/sentAt'
+    messageOutputPayload:
+      type: object
+      properties:
+        documentId:
+          type: integer
+          minimum: 0
+          description: Идентификатор документа.
+        documentDescription:
+          type: string
+          description: Описание документа.
+    sentAt:
+      type: string
+      format: date-time
+      description: Время отправки сообщения в формате 'yyyy-MM-dd HH:mm:ss'
