@@ -13,9 +13,10 @@ import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
 @JsonIgnoreProperties
 public class AsyncapiServerEntity {
 
-    private String url;             // 'localhost:9091'
-    private String description;     // Кластер документов Kafka
+    private String url;                         // 'localhost:9091'
+    private String description;                 // Кластер документов Kafka
     private ServerProtocolEnum protocol;        // kafka
-    private String protocolVersion; //'2.5.1'
+    private String protocolVersion;             //'2.5.1'
+    private AsyncapiServerVariables variables;  // port
 
 }

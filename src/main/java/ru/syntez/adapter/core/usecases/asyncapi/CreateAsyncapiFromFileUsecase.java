@@ -30,6 +30,9 @@ public class CreateAsyncapiFromFileUsecase {
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,  false);
             objectMapper.findAndRegisterModules();
             AsyncapiEntity asyncapi = objectMapper.readValue(asyncapiFile, AsyncapiEntity.class);
+
+            LOG.info(String.format("File %s was completed", fileName));
+
             return asyncapi;
         } catch (IOException e) {
             throw new AsyncapiParserException(String.format("Error read file %s", fileName));

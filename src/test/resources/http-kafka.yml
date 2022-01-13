@@ -10,16 +10,21 @@ info:
 
 servers:
   entrypoints:
-    url: 'localhost:8098/sample-document/api/v1'
+    url: 'http://localhost'
     description: Сервер документов http
     protocol: http
     protocolVersion: '2.0'
+    variables:
+      port: 8098
+      basePath: '/sample-document/api/v1'
 
   dataproviders:
-    url: 'localhost:9091'
+    url: 'localhost'
     description: Кластер документов Kafka
     protocol: kafka
     protocolVersion: '2.5.1'
+    variables:
+      port: 9091
 
 defaultContentType: application/json
 
@@ -30,6 +35,8 @@ channels:
       operationId: receiveSampleDocumentRequest
       bindings:
         http:
+          type: request
+          method: POST
           servers: [
               $ref: '#/servers/entrypoints'
           ]
