@@ -1,28 +1,33 @@
-package ru.syntez.adapter.config;
+package ru.syntez.adapter.core.usecases.generate;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import ru.syntez.adapter.core.entities.asyncapi.AsyncapiEntity;
+import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
-import ru.syntez.adapter.core.usecases.generate.GenerateDataproviderUsecase;
-import ru.syntez.adapter.core.usecases.generate.GenerateEntrypointUsecase;
-import ru.syntez.adapter.core.utils.AsyncapiSerializer;
 import ru.syntez.adapter.core.utils.AsyncapiService;
 
 import javax.annotation.PostConstruct;
 import java.util.Optional;
 
-@Configuration
+/**
+ * В зависимости от полученной конфигурации asyncapi
+ * генерация компонентов адаптера транспортного уровня:
+ * сообщения,
+ * контроллеры входящих и сходящих сообщений,
+ * трансформеры
+ *
+ * @author Skyhunter
+ * @date 17.01.2022
+ */
+@Service
 @RequiredArgsConstructor
-public class ApplicationAsyncapiConfig {
+public class GenerateMainUsecase {
 
     private final GenerateEntrypointUsecase generateEntrypoint;
     private final GenerateDataproviderUsecase generateDataprovider;
     private final AsyncapiService asyncapiService;
 
     @PostConstruct
-    public void generator() {
+    public void execute() {
 
         Optional<AsyncapiServerEntity> entrypointServer = asyncapiService.getEntrypointServer();
         entrypointServer.ifPresent(generateEntrypoint::execute);

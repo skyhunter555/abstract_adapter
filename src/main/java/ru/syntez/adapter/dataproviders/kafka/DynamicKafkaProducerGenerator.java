@@ -1,8 +1,5 @@
 package ru.syntez.adapter.dataproviders.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -10,33 +7,22 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.Argument;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.entities.IMessageOutput;
-import ru.syntez.adapter.core.entities.IMessageReceived;
-import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
-import ru.syntez.adapter.core.usecases.SendMessageUsecase;
 import ru.syntez.adapter.entrypoints.http.SampleDocument;
 
 import java.lang.reflect.Modifier;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Generates rest controller for {@link SampleDocument} at runtime:
+ * Generates kafka producer for {@link IMessageOutput} at runtime:
  * {@code
  *
  * @Component
@@ -91,16 +77,16 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-@DependsOn("kafkaSendMessageUsecase")
 @RequiredArgsConstructor
 public class DynamicKafkaProducerGenerator {
 
     private final ApplicationContext applicationContext;
+    private final DynamicKafkaProducerImpl KafkaProducer;
 
     @SneakyThrows
-    public IDataprovider generate() {
-        // init static implementation to avoid reflection usage
-        KafkaProducerMethodsImplementation.sendMessageUsecase = applicationContext.getBean(KafkaSendMessageUsecase.class);
+    public IDataprovider execute() {
+
+        KafkaProducerMethodsImplementation.kafkaProducer = KafkaProducer;
 
         // creates builder with unique `class` name and `@Component` annotation
         IDataprovider adapterKafkaProducer = new ByteBuddy()
@@ -123,7 +109,7 @@ public class DynamicKafkaProducerGenerator {
                         .build())
                 .intercept(MethodDelegation.to(KafkaProducerMethodsImplementation.class))
 
-                // creates instance of generated `controller`
+                // creates instance of generated `Producer`
                 .make()
                 .load(getClass().getClassLoader())
                 .getLoaded()
@@ -137,18 +123,18 @@ public class DynamicKafkaProducerGenerator {
     }
 
     /**
-     * Methods implementation for {@link IMessageOutput} controller by {@link KafkaSendMessageUsecase}
+     * Methods implementation for {@link IMessageOutput} controller by {@link DynamicKafkaProducerImpl}
      */
     public static class KafkaProducerMethodsImplementation {
 
-        private static KafkaSendMessageUsecase sendMessageUsecase;
+        private static DynamicKafkaProducerImpl kafkaProducer;
 
         /**
          * Delegates to:
-         * {@link KafkaSendMessageUsecase#execute(IMessageOutput)}
+         * {@link DynamicKafkaProducerImpl#sendMessage(IMessageOutput)}
          */
         public static HandleMessageResult sendMessage(@Argument(0) IMessageOutput document) {
-            return sendMessageUsecase.execute(document);
+            return kafkaProducer.sendMessage(document);
         }
 
     }

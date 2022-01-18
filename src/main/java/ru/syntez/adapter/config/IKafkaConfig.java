@@ -8,12 +8,14 @@ import java.util.Map;
 
 public interface IKafkaConfig {
 
-    public MessageHandler kafkaMessageHandler();
+    MessageHandler kafkaMessageHandler();
 
     KafkaTemplate<String, String> kafkaTemplate();
 
     ProducerFactory<String, String> producerFactory();
 
     Map<String, Object> producerConfigs();
+
+    String getTopicName();
 
 }

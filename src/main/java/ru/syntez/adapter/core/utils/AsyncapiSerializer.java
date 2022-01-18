@@ -10,7 +10,13 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Base64;
 
-@RequiredArgsConstructor
+/**
+ * Сервис сериализации файла asyncapi для добавления в системные настройки перед запуском, что-бы создать из него бин в конфигурации.
+ * TODO подумать как обойтись без сериализации
+ *
+ * @author Skyhunter
+ * @date 17.01.2022
+ */
 public class AsyncapiSerializer {
 
     public static String entityToString(AsyncapiEntity entity) {
@@ -30,7 +36,6 @@ public class AsyncapiSerializer {
         }
         return null;
     }
-
 
     /** Write the object to a Base64 string. */
     private static String toString( Serializable o ) throws IOException {

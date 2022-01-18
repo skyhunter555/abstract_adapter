@@ -9,6 +9,14 @@ import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.entrypoints.http.DynamicHttpControllerRegister;
 
+/**
+ * В зависимости от полученной конфигурации asyncapi
+ * генерация компонентов контроллера входящих сообщений:
+ * http
+ *
+ * @author Skyhunter
+ * @date 17.01.2022
+ */
 @Service
 @RequiredArgsConstructor
 public class GenerateEntrypointUsecase {
@@ -23,12 +31,8 @@ public class GenerateEntrypointUsecase {
             throw new AsyncapiParserException("Asyncapi entrypoints protocol not found!");
         }
 
-        if (entrypointServer.getVariables() == null || entrypointServer.getVariables().getBasePath() == null) {
-            throw new AsyncapiParserException("Asyncapi entrypoints http basePath not found!");
-        }
-
         if (entrypointServer.getProtocol() == ServerProtocolEnum.http) {
-            httpControllerRegister.registerUserController(entrypointServer.getVariables().getBasePath());
+            httpControllerRegister.execute(entrypointServer);
             LOG.info("Asyncapi httpControllerRegister generated");
         }
 

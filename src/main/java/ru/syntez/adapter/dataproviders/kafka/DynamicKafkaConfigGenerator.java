@@ -11,95 +11,44 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.stereotype.Component;
 import ru.syntez.adapter.config.IKafkaConfig;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
+import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
+import ru.syntez.adapter.core.utils.AsyncapiService;
 import ru.syntez.adapter.entrypoints.http.SampleDocument;
 
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Optional;
 
 /**
- * Generates rest controller for {@link SampleDocument} at runtime:
- * {@code
+ * Генератор настроек kafka
  *
- * @Component
- * @Primary public class AdapterKafkaProducer implements IDataprovider {
- * <p>
- * private static Logger LOG = LogManager.getLogger(HandleMessageUsecase.class);
- * @Value("${kafka.input-topic-name}") private String topicName;
- * @Value("${kafka.producer.send-timeout-seconds}") private Integer sendTimeout;
- * <p>
- * private final ObjectMapper mapper;
- * <p>
- * private final KafkaTemplate<String, String> kafkaTemplate;
- * <p>
- * public AdapterKafkaProducer(ObjectMapper objectMapper,
- * KafkaTemplate<String, String> kafkaTemplate) {
- * this.mapper = objectMapper;
- * this.kafkaTemplate = kafkaTemplate;
- * }
- * <p>
- * public HandleMessageResult sendMessage(IMessageOutput messageOutput) {
- * <p>
- * //TODO: в зависимости от требований тип ключа - параметризовать
- * String messageKey = UUID.randomUUID().toString();
- * <p>
- * String message;
- * try {
- * message = mapper.writeValueAsString(messageOutput);
- * } catch (JsonProcessingException e) {
- * LOG.error("Unable to write message as json: " + e.getMessage());
- * return HandleMessageResult.ERROR;
- * }
- * <p>
- * ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(new ProducerRecord<>(topicName, messageKey, message));
- * <p>
- * try {
- * SendResult<String, String> result = future.completable().get(sendTimeout, TimeUnit.SECONDS);
- * LOG.info("Sent message=[" + message + "] with offset=[" + result.getRecordMetadata().offset() + "]");
- * return HandleMessageResult.OK;
- * } catch (Exception ex) {
- * LOG.error("Unable to send message=[" + message + "] due to : " + ex.getMessage());
- * return HandleMessageResult.ERROR;
- * }
- * <p>
- * }
- * <p>
- * }
+ * @author Skyhunter
+ * @date 17.01.2022
  */
 @Slf4j
 @Component
-@DependsOn("dynamicKafkaConfigImpl")
 @RequiredArgsConstructor
 public class DynamicKafkaConfigGenerator {
 
     private final ApplicationContext applicationContext;
-
-    /*
-    Class<?> type = new ByteBuddy()
-  .subclass(Object.class)
-  .name("MyClassName")
-  .defineMethod("custom", String.class, Modifier.PUBLIC)
-  .intercept(MethodDelegation.to(Bar.class))
-  .defineField("x", String.class, Modifier.PUBLIC)
-  .make()
-  .load(
-    getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
-  .getLoaded();
-
-Method m = type.getDeclaredMethod("custom", null);
-assertEquals(m.invoke(type.newInstance()), Bar.sayHelloBar());
-assertNotNull(type.getDeclaredField("x"));
-     */
+    private final DynamicKafkaConfigImpl kafkaConfig;
+    private final AsyncapiService asyncapiService;
 
     @SneakyThrows
-    public IKafkaConfig generate(AsyncapiServerEntity serverKafka) {
-        // init static implementation to avoid reflection usage
-        KafkaConfigBeanImplementation.dynamicKafkaConfigImpl = applicationContext.getBean(DynamicKafkaConfigImpl.class);
+    public IKafkaConfig execute(AsyncapiServerEntity serverKafka) {
+
+        KafkaConfigBeanImplementation.dynamicKafkaConfigImpl = kafkaConfig;
+
+        //Задаем параметры конфигурации продюсера из настроек asyncapi
+        kafkaConfig.initProducerConfigs(getBootstrapServers(serverKafka));
+        kafkaConfig.setTopicName(getTopicName(asyncapiService));
 
         IKafkaConfig kafkaConfig = new ByteBuddy()
                 .subclass(IKafkaConfig.class)
@@ -115,32 +64,62 @@ assertNotNull(type.getDeclaredField("x"));
                 .annotateMethod(AnnotationDescription.Builder
                         .ofType(Bean.class)
                         .build())
+                .defineMethod("producerFactory", ProducerFactory.class, Modifier.PUBLIC)
+                .intercept(MethodDelegation.to(DynamicKafkaConfigGenerator.KafkaConfigBeanImplementation.class))
+                .annotateMethod(AnnotationDescription.Builder
+                        .ofType(Bean.class)
+                        .build())
+                .defineMethod("kafkaTemplate", KafkaTemplate.class, Modifier.PUBLIC)
+                .intercept(MethodDelegation.to(DynamicKafkaConfigGenerator.KafkaConfigBeanImplementation.class))
+                .annotateMethod(AnnotationDescription.Builder
+                        .ofType(Bean.class)
+                        .build())
+                .defineMethod("getTopicName", String.class, Modifier.PUBLIC)
+                .intercept(MethodDelegation.to(DynamicKafkaConfigGenerator.KafkaConfigBeanImplementation.class))
 
                 .make()
                 .load(getClass().getClassLoader())
                 .getLoaded()
                 .newInstance();
 
-
-        //  KafkaConfig kafkaConfigProxy = new ByteBuddy()
-        //          .subclass(KafkaConfig.class)
-        //          .method(named("producerConfigs"))
-        //          .intercept(MethodDelegation.to(DynamicKafkaConfigGenerator.KafkaConfigBeanImplementation.class))
-        //          .make()
-        //          .load(KafkaConfig.class.getClassLoader())
-        //          .getLoaded()
-        //          .newInstance();
-
-        // KafkaConfig kafkaConfig = applicationContext.getBean(KafkaConfig.class);
-        //applicationContext.getParentBeanFactory().getBeanProvider(). = kafkaConfig;
-        //BeanUtils.
-
-
+        //Регистрируем новые бины конфигурации
         ConfigurableListableBeanFactory beanFactory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
         beanFactory.registerSingleton(kafkaConfig.getClass().getCanonicalName(), kafkaConfig);
 
         log.info("Generated `KafkaConfig`: {}", kafkaConfig.getClass().getName());
         return kafkaConfig;
+    }
+
+    /**
+     * Получение адреса отправки kafka для продюсера
+     * @param serverKafka
+     * @return
+     */
+    private String getBootstrapServers(AsyncapiServerEntity serverKafka) {
+
+        if (serverKafka.getUrl() == null) {
+            throw new AsyncapiParserException("Asyncapi Kafka dataprovider url not found!");
+        }
+
+        if (serverKafka.getVariables() == null || serverKafka.getVariables().getPort() == null) {
+            throw new AsyncapiParserException("Asyncapi Kafka dataprovider port not found!");
+        }
+
+        return String.format("%s:%s", serverKafka.getUrl(), serverKafka.getVariables().getPort());
+    }
+
+    /**
+     * Получение топика отправки kafka для продюсера
+     * @param asyncapiService
+     * @return
+     */
+    private String getTopicName(AsyncapiService asyncapiService) {
+
+        Optional<String> topicName = asyncapiService.getDataproviderKafkaTopicName();
+        if (topicName.isPresent()) {
+            return topicName.get();
+        }
+        throw new AsyncapiParserException("Asyncapi Kafka dataprovider topicName not found!");
     }
 
     /**
@@ -157,6 +136,26 @@ assertNotNull(type.getDeclaredField("x"));
         public static Map<String, Object> producerConfigs() {
             return dynamicKafkaConfigImpl.producerConfigs();
         }
-
+        /**
+         * Delegates to:
+         * {@link DynamicKafkaConfigImpl#producerFactory()}
+         */
+        public static ProducerFactory<String, String> producerFactory() {
+            return dynamicKafkaConfigImpl.producerFactory();
+        }
+        /**
+         * Delegates to:
+         * {@link DynamicKafkaConfigImpl#kafkaTemplate()}
+         */
+        public static KafkaTemplate<String, String> kafkaTemplate() {
+            return dynamicKafkaConfigImpl.kafkaTemplate();
+        }
+        /**
+         * Delegates to:
+         * {@link DynamicKafkaConfigImpl#getTopicName()}
+         */
+        public static String getTopicName() {
+            return dynamicKafkaConfigImpl.getTopicName();
+        }
     }
 }

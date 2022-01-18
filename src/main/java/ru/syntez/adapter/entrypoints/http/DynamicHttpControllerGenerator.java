@@ -8,8 +8,6 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.annotation.AnnotationDescription;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.Argument;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,19 +50,21 @@ import java.lang.reflect.Modifier;
  *     }
  *
  * }
+ *
+ * @author Skyhunter
+ * @date 17.01.2022
  */
 @Slf4j
 @Component
-@DependsOn("handleMessageUsecase")
 @RequiredArgsConstructor
 public class DynamicHttpControllerGenerator {
 
-    private final ApplicationContext applicationContext;
+    private final HandleMessageUsecase handleMessageUsecase;
 
     @SneakyThrows
-    public Object generateHttpController() {
+    public Object execute() {
         // init static implementation to avoid reflection usage
-        HttpControllerMethodsImplementation.handleMessageUsecase = applicationContext.getBean(HandleMessageUsecase.class);
+        HttpControllerMethodsImplementation.handleMessageUsecase = handleMessageUsecase;
 
         // creates builder with unique `class` name and `@RestController` annotation
         Object adapterHttpController = new ByteBuddy()
