@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ import java.util.List;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiReference {
+public class AsyncapiReference implements Serializable {
 
     @JsonProperty("$ref")
     private String reference;

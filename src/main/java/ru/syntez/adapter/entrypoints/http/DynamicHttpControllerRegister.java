@@ -12,9 +12,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spring.web.plugins.Docket;
-
-import javax.annotation.PostConstruct;
-
 /**
  * Registers rest controller for {@link SampleDocument}
  *
@@ -29,9 +26,9 @@ public class DynamicHttpControllerRegister {
     private final RequestMappingHandlerMapping handlerMapping;
     private final Docket api;
 
-    @PostConstruct
     @SneakyThrows
-    public void registerUserController() {
+    public void registerUserController(String basePath) {
+
         Object adapterHttpController = controllerGenerator.generateHttpController();
 
         /**
@@ -39,7 +36,7 @@ public class DynamicHttpControllerRegister {
          * {@link AdapterHttpControllerMethodsImplementation#create(SampleDocument)}
          */
         handlerMapping.registerMapping(
-                RequestMappingInfo.paths("/sample-document/api/v1")
+                RequestMappingInfo.paths(basePath)
                         .methods(RequestMethod.POST)
                         .consumes(MediaType.APPLICATION_JSON_VALUE)
                         .build(),
@@ -50,7 +47,8 @@ public class DynamicHttpControllerRegister {
         //Обновление swagger api
         api.select()
            .apis(RequestHandlerSelectors.withClassAnnotation(Api.class))
-           .paths(PathSelectors.any()).build();
+           .paths(PathSelectors.any())
+           .build();
 
         log.info("Registered request handler for `AdapterHttpController`: {}", adapterHttpController.getClass().getName());
     }

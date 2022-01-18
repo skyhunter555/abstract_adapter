@@ -32,7 +32,7 @@ channels:
   #Прием входящего документа
   receiveEvents:
     subscribe:
-      operationId: receiveSampleDocumentRequest
+      operationId: receiveSampleDocument
       bindings:
         http:
           type: request

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiReference;
 
+import java.io.Serializable;
+
 /**
  * Asyncapi component message payload
  *
@@ -13,7 +15,7 @@ import ru.syntez.adapter.core.entities.asyncapi.AsyncapiReference;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiComponentMessagePayload {
+public class AsyncapiComponentMessagePayload implements Serializable {
     private String type;                // string
     private String value;               // "OK"
 

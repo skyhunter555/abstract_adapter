@@ -5,6 +5,7 @@ import lombok.Data;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiOneOfReference;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiReference;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiChannelEntityPubSub {
+public class AsyncapiChannelEntityPubSub implements Serializable {
 
     private String operationId;
     private String summary;

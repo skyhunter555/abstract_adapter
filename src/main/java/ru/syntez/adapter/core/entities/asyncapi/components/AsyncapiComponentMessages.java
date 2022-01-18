@@ -2,6 +2,9 @@ package ru.syntez.adapter.core.entities.asyncapi.components;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+
+import java.io.Serializable;
+
 /**
  * Asyncapi component messages
  *
@@ -10,7 +13,7 @@ import lombok.Data;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiComponentMessages {
+public class AsyncapiComponentMessages implements Serializable {
     AsyncapiComponentMessageEntity messageReceived;
     AsyncapiComponentMessageEntity resultOK;
     AsyncapiComponentMessageEntity resultERROR;

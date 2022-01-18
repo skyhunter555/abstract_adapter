@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiReference;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ import java.util.List;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiChannelPubSubBindingEntity {
+public class AsyncapiChannelPubSubBindingEntity implements Serializable {
     private String topic;
     private String partitionCount;
     private List<AsyncapiReference> servers;

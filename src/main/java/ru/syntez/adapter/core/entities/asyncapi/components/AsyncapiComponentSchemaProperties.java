@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  * @date 12.01.2022
  */
 @Data
-public class AsyncapiComponentSchemaProperties {
+public class AsyncapiComponentSchemaProperties implements Serializable {
 
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();

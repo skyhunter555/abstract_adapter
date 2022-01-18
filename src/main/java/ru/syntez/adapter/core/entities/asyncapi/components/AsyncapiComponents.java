@@ -3,6 +3,8 @@ package ru.syntez.adapter.core.entities.asyncapi.components;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Asyncapi components
  * @author Skyhunter
@@ -10,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiComponents {
+public class AsyncapiComponents implements Serializable {
     AsyncapiComponentMessages messages;
     AsyncapiComponentSchemas schemas;
 }

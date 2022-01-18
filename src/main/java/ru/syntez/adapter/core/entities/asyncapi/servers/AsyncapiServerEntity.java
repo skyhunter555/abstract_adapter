@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
 
+import java.io.Serializable;
+
 /**
  * Asyncapi ServerEntity
  * @author Skyhunter
@@ -11,7 +13,7 @@ import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiServerEntity {
+public class AsyncapiServerEntity implements Serializable {
 
     private String url;                         // 'localhost:9091'
     private String description;                 // Кластер документов Kafka

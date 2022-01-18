@@ -20,4 +20,12 @@ management:
 handle:
   execute-business: false
   execute-transform: true
+kafka:
+  producer:
+    send-timeout-seconds: 10
+    acks: "all"
+    retries: 3
+    lingerMs: 1
+    request-timeout-ms: 230
+    delivery-timeout-ms: 1000
 

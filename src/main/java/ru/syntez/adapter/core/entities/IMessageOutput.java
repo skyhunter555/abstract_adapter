@@ -7,6 +7,4 @@ package ru.syntez.adapter.core.entities;
  */
 public interface IMessageOutput {
 
-    String toJsonString();
-
 }

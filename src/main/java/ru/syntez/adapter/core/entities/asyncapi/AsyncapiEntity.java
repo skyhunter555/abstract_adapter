@@ -6,6 +6,7 @@ import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponents;
 import ru.syntez.adapter.core.entities.asyncapi.info.AsyncapiInfo;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServers;
 import ru.syntez.adapter.core.entities.asyncapi.channels.AsyncapiChannels;
+import java.io.Serializable;
 /**
  * Asyncapi entity
  * @author Skyhunter
@@ -13,7 +14,7 @@ import ru.syntez.adapter.core.entities.asyncapi.channels.AsyncapiChannels;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiEntity {
+public class AsyncapiEntity implements Serializable {
 
     private String asyncapi; //api version '2.0.0'
     private AsyncapiInfo info;

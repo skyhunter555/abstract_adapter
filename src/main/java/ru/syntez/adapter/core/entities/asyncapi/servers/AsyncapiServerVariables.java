@@ -3,6 +3,8 @@ package ru.syntez.adapter.core.entities.asyncapi.servers;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Asyncapi server variables
  * @author Skyhunter
@@ -10,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiServerVariables {
+public class AsyncapiServerVariables implements Serializable {
 
     private Integer port;
     private String basePath;

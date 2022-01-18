@@ -3,6 +3,8 @@ package ru.syntez.adapter.core.entities.asyncapi.channels;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Asyncapi ChannelEntity
  * @author Skyhunter
@@ -10,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @JsonIgnoreProperties
-public class AsyncapiChannelEntity {
+public class AsyncapiChannelEntity implements Serializable {
 
     private AsyncapiChannelEntityPubSub subscribe;
     private AsyncapiChannelEntityPubSub publish;
