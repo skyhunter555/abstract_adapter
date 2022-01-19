@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.config.IKafkaConfig;
 import ru.syntez.adapter.core.components.IDataprovider;
-import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaConfigGenerator;
@@ -35,7 +35,7 @@ public class GenerateDataproviderUsecase {
             throw new AsyncapiParserException("Asyncapi dataprovider protocol not found!");
         }
 
-        if (dataproviderServer.getProtocol() == ServerProtocolEnum.kafka) {
+        if (dataproviderServer.getProtocol() == AsyncapiProtocolEnum.kafka) {
 
             IKafkaConfig kafkaConfig = kafkaConfigGenerator.execute(dataproviderServer);
             IDataprovider kafkaProducer = kafkaProducerGenerator.execute();

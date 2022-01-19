@@ -15,16 +15,18 @@ servers:
     protocol: http
     protocolVersion: '2.0'
     variables:
-      port: 8098
-      basePath: '/sample-document/api/v1'
-
+      port:
+        default: '8098'
+      basePath:
+        default: '/sample-document/api/v1'
   dataproviders:
     url: 'localhost'
     description: Кластер документов Kafka
     protocol: kafka
     protocolVersion: '2.5.1'
     variables:
-      port: 9091
+      port:
+        default: '9091'
 
 defaultContentType: application/json
 
@@ -105,6 +107,7 @@ components:
       contentType: application/json
       summary: Входящий документ
       payload:
+        type: object
         $ref: '#/components/schemas/messageReceivedPayload'
     resultOK:
       name: ResultOK
@@ -124,7 +127,10 @@ components:
       contentType: application/json
       summary: Исходящий документ
       payload:
+        type: object
         $ref: '#/components/schemas/messageOutputPayload'
+        tranform:
+          $ref: "#/components/schemas/messageTranformPayload"
   schemas:
     messageReceivedPayload:
       type: object
@@ -152,3 +158,13 @@ components:
       type: string
       format: date-time
       description: Время отправки сообщения в формате 'yyyy-MM-dd HH:mm:ss'
+    messageTranformPayload:
+      type: object
+      description: Схема транформации для получения исходящего документа
+      properties:
+        tranfortmMessage:
+          source: SampleDocument
+        documentId:
+          source: docId
+        documentDescription:
+          source: docNote

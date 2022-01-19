@@ -2,8 +2,8 @@ package ru.syntez.adapter.core.entities.asyncapi.channels;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiTag;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiOneOfReference;
-import ru.syntez.adapter.core.entities.asyncapi.AsyncapiReference;
 
 import java.io.Serializable;
 import java.util.List;
@@ -38,6 +38,6 @@ public class AsyncapiChannelEntityPubSub implements Serializable {
     private String summary;
     private String description;
     private AsyncapiChannelPubSubBindings bindings;
-    private List<AsyncapiChannelEntityPubSubTag> tags;
+    private List<AsyncapiTag> tags;
     private AsyncapiOneOfReference message;
 }

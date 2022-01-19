@@ -1,7 +1,7 @@
 package ru.syntez.adapter.core.utils;
 
-import ru.syntez.adapter.core.entities.asyncapi.ParseResultMessageEnum;
-import ru.syntez.adapter.core.entities.asyncapi.ValidatedResult;
+import ru.syntez.adapter.core.entities.readfile.ParseResultMessageEnum;
+import ru.syntez.adapter.core.entities.readfile.ValidatedResult;
 
 import java.util.Optional;
 

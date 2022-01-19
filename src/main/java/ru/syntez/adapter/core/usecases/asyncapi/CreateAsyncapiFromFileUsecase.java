@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiEntity;
-import ru.syntez.adapter.core.entities.asyncapi.FileExtensionEnum;
+import ru.syntez.adapter.core.entities.readfile.FileExtensionEnum;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 
 import java.io.File;
@@ -35,7 +35,8 @@ public class CreateAsyncapiFromFileUsecase {
 
             return asyncapi;
         } catch (IOException e) {
-            throw new AsyncapiParserException(String.format("Error read file %s", fileName));
+            LOG.error(e);
+            throw new AsyncapiParserException(String.format("Error read file %s: ", fileName, e.getMessage()));
         }
 
     }

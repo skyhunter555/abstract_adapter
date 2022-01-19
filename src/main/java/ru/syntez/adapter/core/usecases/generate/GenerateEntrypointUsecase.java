@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.entrypoints.http.DynamicHttpControllerRegister;
@@ -31,7 +31,7 @@ public class GenerateEntrypointUsecase {
             throw new AsyncapiParserException("Asyncapi entrypoints protocol not found!");
         }
 
-        if (entrypointServer.getProtocol() == ServerProtocolEnum.http) {
+        if (entrypointServer.getProtocol() == AsyncapiProtocolEnum.http) {
             httpControllerRegister.execute(entrypointServer);
             LOG.info("Asyncapi httpControllerRegister generated");
         }

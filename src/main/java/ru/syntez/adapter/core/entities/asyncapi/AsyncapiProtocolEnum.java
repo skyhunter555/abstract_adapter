@@ -6,7 +6,7 @@ package ru.syntez.adapter.core.entities.asyncapi;
  * @author Skyhunter
  * @date 12.01.2022
  */
-public enum ServerProtocolEnum {
+public enum AsyncapiProtocolEnum {
     amqp,
     amqps,
     http,

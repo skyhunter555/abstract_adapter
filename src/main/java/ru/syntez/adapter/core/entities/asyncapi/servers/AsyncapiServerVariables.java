@@ -14,7 +14,7 @@ import java.io.Serializable;
 @JsonIgnoreProperties
 public class AsyncapiServerVariables implements Serializable {
 
-    private Integer port;
-    private String basePath;
+    private AsyncapiServerVariableEntity port;
+    private AsyncapiServerVariableEntity basePath;
 
 }

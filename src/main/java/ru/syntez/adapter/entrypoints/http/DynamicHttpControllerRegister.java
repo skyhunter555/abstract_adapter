@@ -65,10 +65,12 @@ public class DynamicHttpControllerRegister {
     }
 
     private String getBasePath(AsyncapiServerEntity httpServer) {
-        if (httpServer.getVariables() == null || httpServer.getVariables().getBasePath() == null) {
+        if (httpServer.getVariables() == null
+                || httpServer.getVariables().getBasePath() == null
+                || httpServer.getVariables().getBasePath().getDefaultValue() == null) {
             throw new AsyncapiParserException("Asyncapi entrypoints http basePath not found!");
         }
-        return httpServer.getVariables().getBasePath();
+        return httpServer.getVariables().getBasePath().getDefaultValue();
     }
 
     /**

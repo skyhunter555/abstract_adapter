@@ -2,7 +2,7 @@ package ru.syntez.adapter.core.utils;
 
 import lombok.RequiredArgsConstructor;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiEntity;
-import ru.syntez.adapter.core.entities.asyncapi.ServerProtocolEnum;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import java.util.Optional;
@@ -25,8 +25,11 @@ public class AsyncapiService {
     public Optional<Integer> getEntrypointsHttpPort() {
         if (asyncapi.getServers() != null
                 && asyncapi.getServers().getEntrypoints() != null
-                && asyncapi.getServers().getEntrypoints().getProtocol() == ServerProtocolEnum.http) {
-            return Optional.of(asyncapi.getServers().getEntrypoints().getVariables().getPort());
+                && asyncapi.getServers().getEntrypoints().getProtocol() == AsyncapiProtocolEnum.http
+                && asyncapi.getServers().getEntrypoints().getVariables() != null
+                && asyncapi.getServers().getEntrypoints().getVariables().getPort() != null) {
+            String portDefault = asyncapi.getServers().getEntrypoints().getVariables().getPort().getDefaultValue();
+            return Optional.of(Integer.valueOf(portDefault));
         }
         return Optional.empty();
     }

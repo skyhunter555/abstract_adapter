@@ -1,4 +1,4 @@
-package ru.syntez.adapter.core.entities.asyncapi;
+package ru.syntez.adapter.core.entities.readfile;
 
 /**
  * ParseResultValue for Asyncapi with some message

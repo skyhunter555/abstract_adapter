@@ -16,4 +16,5 @@ public class AsyncapiComponentSchemas implements Serializable {
     private AsyncapiComponentSchemaEntity messageReceivedPayload;
     private AsyncapiComponentSchemaEntity messageOutputPayload;
     private AsyncapiComponentSchemaEntity sentAt;
+    private AsyncapiComponentSchemaEntity messageTranformPayload;
 }
