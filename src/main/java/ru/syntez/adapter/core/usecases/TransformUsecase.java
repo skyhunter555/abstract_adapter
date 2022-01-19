@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.components.IAdapterConverter;
 import ru.syntez.adapter.core.entities.IMessageOutput;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.IMessageReceived;
 import ru.syntez.adapter.core.entities.TransformResult;
 import ru.syntez.adapter.core.exceptions.AdapterException;
@@ -32,7 +33,7 @@ public class TransformUsecase {
         this.converter = converter;
     }
 
-    public TransformResult execute(IMessageReceived messageReceived) {
+    public TransformResult execute(IMessagePayload messageReceived) {
 
         TransformResult result = new TransformResult();
         List<IMessageOutput> messageList = new ArrayList<>();

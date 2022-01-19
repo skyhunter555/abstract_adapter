@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiEntity;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import java.util.Optional;
 
@@ -86,4 +87,30 @@ public class AsyncapiService {
         return Optional.of(asyncapi.getComponents().getMessages().getMessageReceived());
     }
 
+    /**
+     * Получение сущности payload сообщения
+     * #/components/schemas/messageOutputPayload --> messageOutputPayload
+     *
+     * @return
+     */
+    public Optional<AsyncapiComponentSchemaEntity> getMessagePayload(String payloadReference) {
+        if (asyncapi.getComponents() == null
+                || asyncapi.getComponents().getSchemas() == null) {
+            return Optional.empty();
+        }
+        String[] reference = payloadReference.split("/");
+        String payloadName = reference[reference.length - 1];
+
+        switch (payloadName) {
+            case "messageReceivedPayload":
+                return Optional.of(asyncapi.getComponents().getSchemas().getMessageReceivedPayload());
+            case "messageOutputPayload":
+                return Optional.of(asyncapi.getComponents().getSchemas().getMessageOutputPayload());
+            case "sentAt":
+                return Optional.of(asyncapi.getComponents().getSchemas().getSentAt());
+            case "messageTranformPayload":
+                return Optional.of(asyncapi.getComponents().getSchemas().getMessageTranformPayload());
+        }
+        return Optional.empty();
+    }
 }

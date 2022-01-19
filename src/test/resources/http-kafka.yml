@@ -130,6 +130,7 @@ components:
         type: object
         $ref: '#/components/schemas/messageOutputPayload'
         tranform:
+          type: object
           $ref: "#/components/schemas/messageTranformPayload"
   schemas:
     messageReceivedPayload:
@@ -137,18 +138,21 @@ components:
       properties:
         docId:
           type: integer
+          format: int32
           minimum: 0
           description: Идентификатор документа.
         docNote:
           type: string
           description: Описание документа.
         sentAt:
+          type: object
           $ref: '#/components/schemas/sentAt'
     messageOutputPayload:
       type: object
       properties:
         documentId:
           type: integer
+          format: int32
           minimum: 0
           description: Идентификатор документа.
         documentDescription:

@@ -15,11 +15,12 @@ import java.io.Serializable;
 @Data
 @JsonIgnoreProperties
 public class AsyncapiPayloadEntity implements Serializable {
-    private String type;                // string
+    private AsyncapiTypeEnum type;      // enum
+    private AsyncapiFormatEnum format;  // enum
     private String value;               // "OK"
 
     @JsonProperty("$ref")
     private String reference;  // '#/components/schemas/messageReceivedPayload'
 
-    private AsyncapiPayloadEntity tranform;
+    private AsyncapiPayloadEntity transform;
 }

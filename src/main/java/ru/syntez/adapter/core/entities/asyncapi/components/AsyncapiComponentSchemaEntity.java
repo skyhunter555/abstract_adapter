@@ -1,7 +1,8 @@
 package ru.syntez.adapter.core.entities.asyncapi.components;
 
 import lombok.Data;
-import ru.syntez.adapter.core.entities.asyncapi.AsyncapiTag;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiFormatEnum;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiTypeEnum;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,7 +32,8 @@ import java.util.List;
 @Data
 public class AsyncapiComponentSchemaEntity implements Serializable {
 
-    private String type;
+    private AsyncapiTypeEnum type;
+    private AsyncapiFormatEnum format;  // enum
     private String title;
     private List<String> required;
     private AsyncapiComponentSchemaProperties properties;

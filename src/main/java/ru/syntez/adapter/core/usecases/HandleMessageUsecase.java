@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.BusinessResult;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.entities.IMessageOutput;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.IMessageReceived;
 import ru.syntez.adapter.core.entities.TransformResult;
 
@@ -42,9 +43,9 @@ public class HandleMessageUsecase {
         this.sendMessageUsecase = sendMessageUsecase;
     }
 
-    public HandleMessageResult execute(IMessageReceived messageReceived) {
+    public HandleMessageResult execute(IMessagePayload iMessagePayload) {
 
-        List<IMessageOutput> messageOutputList = getMessageOutputList(messageReceived);
+        List<IMessageOutput> messageOutputList = getMessageOutputList(iMessagePayload);
         try {
             return sendMessageUsecase.execute(messageOutputList);
         } catch (Exception ex) {
@@ -59,7 +60,7 @@ public class HandleMessageUsecase {
      * @param messageReceived - входящее сообщение
      * @return
      */
-    private List<IMessageOutput> getMessageOutputList(IMessageReceived messageReceived) {
+    private List<IMessageOutput> getMessageOutputList(IMessagePayload messageReceived) {
         if (business) {
             BusinessResult result = businessUsecase.execute(messageReceived);
             if (result.getResult() == HandleMessageResult.OK) {

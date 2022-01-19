@@ -1,4 +1,4 @@
-package ru.syntez.adapter.entrypoints.http;
+package ru.syntez.adapter.entrypoints.http.entities;
 
 import lombok.Data;
 import ru.syntez.adapter.core.entities.IMessageReceived;

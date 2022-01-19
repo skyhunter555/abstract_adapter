@@ -13,19 +13,9 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import ru.syntez.adapter.core.entities.IMessageReceived;
-import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
-import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
-import ru.syntez.adapter.core.utils.AsyncapiService;
-import ru.syntez.adapter.entrypoints.http.SampleDocument;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-
-import static net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
  *

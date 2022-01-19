@@ -10,14 +10,12 @@ import net.bytebuddy.implementation.bind.annotation.Argument;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.entities.IMessageOutput;
-import ru.syntez.adapter.entrypoints.http.SampleDocument;
 
 import java.lang.reflect.Modifier;
 

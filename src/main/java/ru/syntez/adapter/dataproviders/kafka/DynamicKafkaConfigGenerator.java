@@ -20,8 +20,6 @@ import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
 import ru.syntez.adapter.core.utils.AsyncapiService;
-import ru.syntez.adapter.entrypoints.http.SampleDocument;
-
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Optional;
@@ -123,7 +121,7 @@ public class DynamicKafkaConfigGenerator {
     }
 
     /**
-     * Methods implementation for {@link SampleDocument} controller by {@link HandleMessageUsecase}
+     * Methods implementation controller by {@link DynamicKafkaConfigImpl}
      */
     public static class KafkaConfigBeanImplementation {
 

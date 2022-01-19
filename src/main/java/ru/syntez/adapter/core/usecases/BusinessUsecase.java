@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.BusinessResult;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.IMessageReceived;
 
 /**
@@ -19,7 +20,7 @@ public class BusinessUsecase {
 
     private static Logger LOG = LogManager.getLogger(BusinessUsecase.class);
 
-    public BusinessResult execute(IMessageReceived messageReceived) {
+    public BusinessResult execute(IMessagePayload messageReceived) {
 
         //TODO какая-то бизнесовая логика
 

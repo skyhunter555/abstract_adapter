@@ -12,13 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
-import ru.syntez.adapter.core.entities.IMessageReceived;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
+import ru.syntez.adapter.entrypoints.http.entities.SampleDocument;
 
 import java.lang.reflect.Modifier;
 
 /**
- * Generates rest controller for {@link SampleDocument} at runtime:
+ * Generates rest controller for {@link IMessagePayload} at runtime:
  * {@code
  *
  * package ru.syntez.adapter.entrypoints.http;
@@ -28,7 +29,6 @@ import java.lang.reflect.Modifier;
  * import org.springframework.web.bind.annotation.*;
  * import ru.syntez.adapter.core.entities.HandleMessageResult;
  * import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
- * import ru.syntez.adapter.entrypoints.http.entities.SampleDocument;
  *
  * @RestController
  * @RequestMapping("/sample-document/api/v1")
@@ -62,7 +62,8 @@ public class DynamicHttpControllerGenerator {
     private final HandleMessageUsecase handleMessageUsecase;
 
     @SneakyThrows
-    public Object execute() {
+    public Object execute(IMessagePayload messagePayload) {
+
         // init static implementation to avoid reflection usage
         HttpControllerMethodsImplementation.handleMessageUsecase = handleMessageUsecase;
 
@@ -78,10 +79,10 @@ public class DynamicHttpControllerGenerator {
                     .build())
                 /**
                  * Delegates to:
-                 * {@link HttpControllerMethodsImplementation#create(SampleDocument)}
+                 * {@link HttpControllerMethodsImplementation#create(IMessagePayload)}
                  */
                 .defineMethod("create", HandleMessageResult.class, Modifier.PUBLIC)
-                .withParameter(SampleDocument.class, "sampleDocument")
+                .withParameter(messagePayload.getClass(), messagePayload.getClass().getName())
                 .annotateParameter(AnnotationDescription.Builder
                         .ofType(RequestBody.class)
                         .build())
@@ -98,7 +99,7 @@ public class DynamicHttpControllerGenerator {
     }
 
     /**
-     * Methods implementation for {@link SampleDocument} controller by {@link HandleMessageUsecase}
+     * Methods implementation for {@link IMessagePayload} controller by {@link HandleMessageUsecase}
      */
     public static class HttpControllerMethodsImplementation {
 
@@ -106,10 +107,10 @@ public class DynamicHttpControllerGenerator {
 
         /**
          * Delegates to:
-         * {@link HandleMessageUsecase#execute(IMessageReceived)}
+         * {@link HandleMessageUsecase#execute(IMessagePayload)}
          */
-        public static HandleMessageResult create(@Argument(0) SampleDocument sampleDocument) {
-            return handleMessageUsecase.execute(sampleDocument);
+        public static HandleMessageResult create(@Argument(0) IMessagePayload iMessagePayload) {
+            return handleMessageUsecase.execute(iMessagePayload);
         }
 
     }

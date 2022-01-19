@@ -9,11 +9,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import ru.syntez.adapter.core.entities.IMessageReceived;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
+import ru.syntez.adapter.core.usecases.generate.GenerateMessagePayloadUsecase;
 import ru.syntez.adapter.core.utils.AsyncapiService;
+import ru.syntez.adapter.entrypoints.http.entities.SampleDocument;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -30,7 +32,7 @@ import java.util.Optional;
 public class DynamicHttpControllerRegister {
 
     private final AsyncapiService asyncapiService;
-    private final DynamicHttpMessageGenerator messageGenerator;
+    private final GenerateMessagePayloadUsecase generateMessage;
     private final DynamicHttpControllerGenerator controllerGenerator;
     private final RequestMappingHandlerMapping handlerMapping;
     private final Docket api;
@@ -38,14 +40,15 @@ public class DynamicHttpControllerRegister {
     @SneakyThrows
     public void execute(AsyncapiServerEntity httpServer) {
 
-        IMessageReceived messageReceived = messageGenerator.execute(getMessageReceived(asyncapiService));
+        IMessagePayload messagePayload = generateMessage.execute(getMessageReceived(asyncapiService));
 
-        Object adapterHttpController = controllerGenerator.execute();
+        Object adapterHttpController = controllerGenerator.execute(messagePayload);
 
         /**
          * Delegates to:
-         * {@link AdapterHttpControllerMethodsImplementation#create(SampleDocument)}
+         * {@link AdapterHttpControllerMethodsImplementation#create(IMessagePayload)}
          */
+
         handlerMapping.registerMapping(
                 RequestMappingInfo.paths(getBasePath(httpServer))
                         .methods(RequestMethod.POST)

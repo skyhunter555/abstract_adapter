@@ -16,6 +16,7 @@
         <lombok-version>1.18.16</lombok-version>
         <swagger-version>2.9.2</swagger-version>
         <jackson-version>2.11.1</jackson-version>
+        <byte-buddy-version>1.12.7</byte-buddy-version>
     </properties>
 
     <developers>
@@ -83,7 +84,7 @@
         <dependency>
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
-            <version>1.11.20</version>
+            <version>${byte-buddy-version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
