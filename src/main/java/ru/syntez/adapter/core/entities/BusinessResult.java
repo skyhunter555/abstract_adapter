@@ -16,6 +16,6 @@ import java.util.List;
  */
 @Data
 public class BusinessResult {
-    private List<IMessageOutput> messageOutputList = new ArrayList<>();
+    private List<IMessagePayload> messageOutputList = new ArrayList<>();
     private HandleMessageResult result =  HandleMessageResult.OK;
 }

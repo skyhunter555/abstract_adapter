@@ -7,8 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.components.IDataprovider;
-import ru.syntez.adapter.core.entities.IMessageOutput;
-
+import ru.syntez.adapter.core.entities.IMessagePayload;
 import java.util.List;
 
 @Service
@@ -19,12 +18,12 @@ public class SendMessageUsecase {
 
     private final ApplicationContext applicationContext;
 
-    public HandleMessageResult execute(List<IMessageOutput> messageOutputList) {
+    public HandleMessageResult execute(List<IMessagePayload> messageOutputList) {
 
         IDataprovider producer = (IDataprovider) applicationContext.getBean("DataproviderImpl");
 
         try {
-            for (IMessageOutput message: messageOutputList) {
+            for (IMessagePayload message: messageOutputList) {
 
                 HandleMessageResult result = producer.sendMessage(message);
                 //TODO логика зависит от требований

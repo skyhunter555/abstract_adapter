@@ -15,12 +15,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
-import ru.syntez.adapter.core.entities.IMessageOutput;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 
 import java.lang.reflect.Modifier;
 
 /**
- * Generates kafka producer for {@link IMessageOutput} at runtime:
+ * Generates kafka producer for {@link IMessagePayload} at runtime:
  * {@code
  *
  * @Component
@@ -101,7 +101,7 @@ public class DynamicKafkaProducerGenerator {
                  * {@link KafkaProducerMethodsImplementation#sendMessage(IMessageOutput)}
                  */
                 .defineMethod("sendMessage", HandleMessageResult.class, Modifier.PUBLIC)
-                .withParameter(IMessageOutput.class, "messageOutput")
+                .withParameter(IMessagePayload.class, "messageOutput")
                 .annotateParameter(AnnotationDescription.Builder
                         .ofType(RequestBody.class)
                         .build())
@@ -121,7 +121,7 @@ public class DynamicKafkaProducerGenerator {
     }
 
     /**
-     * Methods implementation for {@link IMessageOutput} controller by {@link DynamicKafkaProducerImpl}
+     * Methods implementation for {@link IMessagePayload} controller by {@link DynamicKafkaProducerImpl}
      */
     public static class KafkaProducerMethodsImplementation {
 
@@ -129,10 +129,10 @@ public class DynamicKafkaProducerGenerator {
 
         /**
          * Delegates to:
-         * {@link DynamicKafkaProducerImpl#sendMessage(IMessageOutput)}
+         * {@link DynamicKafkaProducerImpl#sendMessage(IMessagePayload)}
          */
-        public static HandleMessageResult sendMessage(@Argument(0) IMessageOutput document) {
-            return kafkaProducer.sendMessage(document);
+        public static HandleMessageResult sendMessage(@Argument(0) IMessagePayload messageOutput) {
+            return kafkaProducer.sendMessage(messageOutput);
         }
 
     }

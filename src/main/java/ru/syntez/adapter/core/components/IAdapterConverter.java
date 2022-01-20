@@ -1,8 +1,6 @@
 package ru.syntez.adapter.core.components;
 
-import ru.syntez.adapter.core.entities.IMessageOutput;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.entities.IMessageReceived;
 
 /**
  * Абстрактный конвертер
@@ -12,6 +10,6 @@ import ru.syntez.adapter.core.entities.IMessageReceived;
  */
 public interface IAdapterConverter {
 
-    IMessageOutput convert(IMessagePayload messageReceived);
+    IMessagePayload convert(Class<?> outputMessageClass, IMessagePayload messageReceived);
 
 }

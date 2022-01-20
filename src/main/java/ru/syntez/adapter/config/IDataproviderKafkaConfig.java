@@ -6,7 +6,14 @@ import org.springframework.messaging.MessageHandler;
 
 import java.util.Map;
 
-public interface IKafkaConfig {
+/**
+ * Конфигурация для продюсера kafka
+ *
+ * @author Skyhunter
+ * @date 20.01.2022
+ */
+
+public interface IDataproviderKafkaConfig {
 
     MessageHandler kafkaMessageHandler();
 
@@ -17,5 +24,7 @@ public interface IKafkaConfig {
     Map<String, Object> producerConfigs();
 
     String getTopicName();
+
+    Class<?> kafkaOutputMessageClassTemplate();
 
 }

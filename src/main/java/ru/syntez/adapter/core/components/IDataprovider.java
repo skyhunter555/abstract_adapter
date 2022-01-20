@@ -1,7 +1,7 @@
 package ru.syntez.adapter.core.components;
 
 import ru.syntez.adapter.core.entities.HandleMessageResult;
-import ru.syntez.adapter.core.entities.IMessageOutput;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 
 /**
  * Абстрактный data provider для отправки сообщения
@@ -10,6 +10,6 @@ import ru.syntez.adapter.core.entities.IMessageOutput;
  */
 public interface IDataprovider {
 
-    HandleMessageResult sendMessage(IMessageOutput messageOutput) throws Exception;
+    HandleMessageResult sendMessage(IMessagePayload messageOutput) throws Exception;
 
 }

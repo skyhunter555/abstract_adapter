@@ -22,9 +22,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GenerateMainUsecase {
 
+    private final AsyncapiService asyncapiService;
     private final GenerateEntrypointUsecase generateEntrypoint;
     private final GenerateDataproviderUsecase generateDataprovider;
-    private final AsyncapiService asyncapiService;
+    private final GenerateTransformUsecase generateTransform;
 
     @PostConstruct
     public void execute() {
@@ -35,6 +36,7 @@ public class GenerateMainUsecase {
         Optional<AsyncapiServerEntity> dataproviderServer = asyncapiService.getDataproviderServer();
         dataproviderServer.ifPresent(generateDataprovider::execute);
 
+        generateTransform.execute();
     }
 
 }

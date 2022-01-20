@@ -15,10 +15,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.stereotype.Component;
-import ru.syntez.adapter.config.IKafkaConfig;
+import ru.syntez.adapter.config.IDataproviderKafkaConfig;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
-import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
 import ru.syntez.adapter.core.utils.AsyncapiService;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class DynamicKafkaConfigGenerator {
     private final AsyncapiService asyncapiService;
 
     @SneakyThrows
-    public IKafkaConfig execute(AsyncapiServerEntity serverKafka) {
+    public IDataproviderKafkaConfig execute(AsyncapiServerEntity serverKafka) {
 
         KafkaConfigBeanImplementation.dynamicKafkaConfigImpl = kafkaConfig;
 
@@ -48,9 +47,9 @@ public class DynamicKafkaConfigGenerator {
         kafkaConfig.initProducerConfigs(getBootstrapServers(serverKafka));
         kafkaConfig.setTopicName(getTopicName(asyncapiService));
 
-        IKafkaConfig kafkaConfig = new ByteBuddy()
-                .subclass(IKafkaConfig.class)
-                .name("KafkaConfig")
+        IDataproviderKafkaConfig kafkaConfig = new ByteBuddy()
+                .subclass(IDataproviderKafkaConfig.class)
+                .name("DataproviderKafkaConfig")
                 .annotateType(AnnotationDescription.Builder
                         .ofType(Configuration.class) // don't use `request` mapping here
                         .build())

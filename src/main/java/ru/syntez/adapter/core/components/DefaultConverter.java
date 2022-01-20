@@ -1,9 +1,8 @@
 package ru.syntez.adapter.core.components;
 
 import org.springframework.stereotype.Component;
-import ru.syntez.adapter.core.entities.IMessageOutput;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.entities.IMessageReceived;
+import ru.syntez.adapter.core.exceptions.AdapterException;
 
 /**
  * Реализация дефалтного конвертера
@@ -14,8 +13,8 @@ import ru.syntez.adapter.core.entities.IMessageReceived;
 @Component
 public class DefaultConverter implements IAdapterConverter {
 
-    public IMessageOutput convert(IMessagePayload messageReceived) {
-        return null;
+    public IMessagePayload convert(Class<?> outputMessageClass, IMessagePayload messageReceived) {
+        throw new AdapterException("AdapterConverter not implemented!");
     }
 
 }

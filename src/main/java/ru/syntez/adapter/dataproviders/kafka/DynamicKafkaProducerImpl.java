@@ -11,9 +11,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
-import ru.syntez.adapter.config.IKafkaConfig;
+import ru.syntez.adapter.config.IDataproviderKafkaConfig;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
-import ru.syntez.adapter.core.entities.IMessageOutput;
+import ru.syntez.adapter.core.entities.IMessagePayload;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,9 +36,9 @@ public class DynamicKafkaProducerImpl {
     private final ObjectMapper mapper;
     private final ApplicationContext applicationContext;
 
-    public HandleMessageResult sendMessage(IMessageOutput messageOutput) {
+    public HandleMessageResult sendMessage(IMessagePayload messageOutput) {
 
-        IKafkaConfig kafkaConfig = (IKafkaConfig) applicationContext.getBean("KafkaConfig");
+        IDataproviderKafkaConfig kafkaConfig = (IDataproviderKafkaConfig) applicationContext.getBean("DataproviderKafkaConfig");
 
         String messageKey = UUID.randomUUID().toString();
         String message;

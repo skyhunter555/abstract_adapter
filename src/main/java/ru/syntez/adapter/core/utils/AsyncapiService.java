@@ -88,6 +88,18 @@ public class AsyncapiService {
     }
 
     /**
+     * Получение сущности исходящего сообщения
+     * @return
+     */
+    public Optional<AsyncapiComponentMessageEntity> getMessageOutput() {
+        if (asyncapi.getComponents() == null
+                || asyncapi.getComponents().getMessages() == null
+                || asyncapi.getComponents().getMessages().getMessageOutput() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(asyncapi.getComponents().getMessages().getMessageOutput());
+    }
+    /**
      * Получение сущности payload сообщения
      * #/components/schemas/messageOutputPayload --> messageOutputPayload
      *

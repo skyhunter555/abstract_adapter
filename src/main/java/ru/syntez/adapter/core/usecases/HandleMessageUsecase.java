@@ -6,11 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.BusinessResult;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
-import ru.syntez.adapter.core.entities.IMessageOutput;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.entities.IMessageReceived;
 import ru.syntez.adapter.core.entities.TransformResult;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,9 +40,9 @@ public class HandleMessageUsecase {
         this.sendMessageUsecase = sendMessageUsecase;
     }
 
-    public HandleMessageResult execute(IMessagePayload iMessagePayload) {
+    public HandleMessageResult execute(IMessagePayload messagePayload) {
 
-        List<IMessageOutput> messageOutputList = getMessageOutputList(iMessagePayload);
+        List<IMessagePayload> messageOutputList = getMessageOutputList(messagePayload);
         try {
             return sendMessageUsecase.execute(messageOutputList);
         } catch (Exception ex) {
@@ -60,7 +57,7 @@ public class HandleMessageUsecase {
      * @param messageReceived - входящее сообщение
      * @return
      */
-    private List<IMessageOutput> getMessageOutputList(IMessagePayload messageReceived) {
+    private List<IMessagePayload> getMessageOutputList(IMessagePayload messageReceived) {
         if (business) {
             BusinessResult result = businessUsecase.execute(messageReceived);
             if (result.getResult() == HandleMessageResult.OK) {

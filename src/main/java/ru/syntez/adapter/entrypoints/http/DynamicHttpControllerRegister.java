@@ -10,17 +10,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
-import ru.syntez.adapter.core.usecases.generate.GenerateMessagePayloadUsecase;
-import ru.syntez.adapter.core.utils.AsyncapiService;
-import ru.syntez.adapter.entrypoints.http.entities.SampleDocument;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spring.web.plugins.Docket;
-
-import java.util.Optional;
 
 /**
  * @author Skyhunter
@@ -31,18 +25,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DynamicHttpControllerRegister {
 
-    private final AsyncapiService asyncapiService;
-    private final GenerateMessagePayloadUsecase generateMessage;
-    private final DynamicHttpControllerGenerator controllerGenerator;
     private final RequestMappingHandlerMapping handlerMapping;
     private final Docket api;
 
     @SneakyThrows
-    public void execute(AsyncapiServerEntity httpServer) {
-
-        IMessagePayload messagePayload = generateMessage.execute(getMessageReceived(asyncapiService));
-
-        Object adapterHttpController = controllerGenerator.execute(messagePayload);
+    public void execute(AsyncapiServerEntity httpServer, Object adapterHttpController, Class<?> messagePayloadClass) {
 
         /**
          * Delegates to:
@@ -56,7 +43,7 @@ public class DynamicHttpControllerRegister {
                         .build(),
                 adapterHttpController,
                 adapterHttpController.getClass()
-                        .getMethod("create", messagePayload.getClass()));
+                        .getMethod("create", messagePayloadClass));
 
         //Обновление swagger api
         api.select()
@@ -76,17 +63,4 @@ public class DynamicHttpControllerRegister {
         return httpServer.getVariables().getBasePath().getDefaultValue();
     }
 
-    /**
-     * Получение настроек входящего сообщения
-     * @param asyncapiService
-     * @return
-     */
-    private AsyncapiComponentMessageEntity getMessageReceived(AsyncapiService asyncapiService) {
-
-        Optional<AsyncapiComponentMessageEntity> messageReceived = asyncapiService.getMessageReceived();
-        if (messageReceived.isPresent()) {
-            return messageReceived.get();
-        }
-        throw new AsyncapiParserException("Asyncapi http entrypoint messageReceived not found!");
-    }
 }

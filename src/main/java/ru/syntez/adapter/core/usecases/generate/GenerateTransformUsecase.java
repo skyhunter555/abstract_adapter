@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.config.IDataproviderKafkaConfig;
+import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
@@ -13,40 +14,41 @@ import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.utils.AsyncapiService;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaConfigGenerator;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaProducerGenerator;
+import ru.syntez.adapter.dataproviders.transform.DynamicTransformConfigGenerator;
 
 import java.util.Optional;
 
 /**
  * В зависимости от полученной конфигурации asyncapi
- * генерация компонентов контроллера исходящих сообщений:
+ * генерация компонентов для простой трансформации сообщений с помощью конвертера
  * kafka
  *
  * @author Skyhunter
- * @date 17.01.2022
+ * @date 20.01.2022
  */
 @Service
 @RequiredArgsConstructor
-public class GenerateDataproviderUsecase {
+public class GenerateTransformUsecase {
 
+    private final AsyncapiService asyncapiService;
     private final GenerateMessageClassUsecase generateMessageClass;
-    private final DynamicKafkaConfigGenerator kafkaConfigGenerator;
-    private final DynamicKafkaProducerGenerator kafkaProducerGenerator;
+    private final DynamicTransformConfigGenerator transformConfigGenerator;
 
-    private static Logger LOG = LogManager.getLogger(GenerateDataproviderUsecase.class);
+    private static Logger LOG = LogManager.getLogger(GenerateTransformUsecase.class);
 
-    public void execute(AsyncapiServerEntity dataproviderServer) {
+    public void execute() {
 
-        if (dataproviderServer.getProtocol() == null) {
-            throw new AsyncapiParserException("Asyncapi dataprovider protocol not found!");
-        }
+        //if (dataproviderServer.getProtocol() == null) {
+        //    throw new AsyncapiParserException("Asyncapi dataprovider protocol not found!");
+        //}
 
-        if (dataproviderServer.getProtocol() == AsyncapiProtocolEnum.kafka) {
+        //if (dataproviderServer.getProtocol() == AsyncapiProtocolEnum.kafka) {
 
-            IDataproviderKafkaConfig kafkaConfig = kafkaConfigGenerator.execute(dataproviderServer);
-            IDataprovider kafkaProducer = kafkaProducerGenerator.execute();
+            Class<?> messagePayloadClass = generateMessageClass.execute(getMessageOutput(asyncapiService));
+            ITransformConfig transformConfig = transformConfigGenerator.execute(messagePayloadClass);
 
-            LOG.info("Asyncapi kafka producer generated");
-        }
+            LOG.info("Asyncapi transtormer generated");
+        //}
 
     }
 

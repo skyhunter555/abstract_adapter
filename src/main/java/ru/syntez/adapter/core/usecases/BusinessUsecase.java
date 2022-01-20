@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.BusinessResult;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.entities.IMessageReceived;
 
 /**
  * Выполнение какой то бизнес логики, которая требует сложной трансформации сообщений

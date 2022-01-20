@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.usecases.HandleMessageUsecase;
-import ru.syntez.adapter.entrypoints.http.entities.SampleDocument;
 
 import java.lang.reflect.Modifier;
 
@@ -62,7 +61,7 @@ public class DynamicHttpControllerGenerator {
     private final HandleMessageUsecase handleMessageUsecase;
 
     @SneakyThrows
-    public Object execute(IMessagePayload messagePayload) {
+    public Object execute(Class<?> messagePayloadClass) {
 
         // init static implementation to avoid reflection usage
         HttpControllerMethodsImplementation.handleMessageUsecase = handleMessageUsecase;
@@ -82,7 +81,7 @@ public class DynamicHttpControllerGenerator {
                  * {@link HttpControllerMethodsImplementation#create(IMessagePayload)}
                  */
                 .defineMethod("create", HandleMessageResult.class, Modifier.PUBLIC)
-                .withParameter(messagePayload.getClass(), messagePayload.getClass().getName())
+                .withParameter(messagePayloadClass, messagePayloadClass.getName())
                 .annotateParameter(AnnotationDescription.Builder
                         .ofType(RequestBody.class)
                         .build())
@@ -109,8 +108,8 @@ public class DynamicHttpControllerGenerator {
          * Delegates to:
          * {@link HandleMessageUsecase#execute(IMessagePayload)}
          */
-        public static HandleMessageResult create(@Argument(0) IMessagePayload iMessagePayload) {
-            return handleMessageUsecase.execute(iMessagePayload);
+        public static HandleMessageResult create(@Argument(0) IMessagePayload messagePayload) {
+            return handleMessageUsecase.execute(messagePayload);
         }
 
     }

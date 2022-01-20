@@ -38,12 +38,12 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GenerateMessagePayloadUsecase {
+public class GenerateMessageClassUsecase {
 
     private final AsyncapiService asyncapiService;
 
     @SneakyThrows
-    public IMessagePayload execute(AsyncapiComponentMessageEntity messageEntity) {
+    public Class<?> execute(AsyncapiComponentMessageEntity messageEntity) {
 
         if (messageEntity.getName() == null) {
             throw new AsyncapiParserException("Asyncapi message name not found!");
@@ -87,14 +87,13 @@ public class GenerateMessagePayloadUsecase {
         }
 
         // creates instance of generated `IMessagePayload`
-        IMessagePayload messagePayload = messagePayloadBuilder
+        Class<?> messagePayloadClass = messagePayloadBuilder
                 .make()
-                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.WRAPPER_PERSISTENT)
-                .getLoaded()
-                .newInstance();
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .getLoaded();
 
-        log.info("Generated `IMessagePayload`: {}", messagePayload.getClass().getName());
-        return messagePayload;
+        log.info("Generated implementation class for `IMessagePayload`: {}", messagePayloadClass.getName());
+        return messagePayloadClass;
     }
 
     /**
