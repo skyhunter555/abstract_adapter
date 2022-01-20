@@ -56,7 +56,7 @@ public class DynamicHttpControllerRegister {
                         .build(),
                 adapterHttpController,
                 adapterHttpController.getClass()
-                        .getMethod("create", SampleDocument.class));
+                        .getMethod("create", messagePayload.getClass()));
 
         //Обновление swagger api
         api.select()
