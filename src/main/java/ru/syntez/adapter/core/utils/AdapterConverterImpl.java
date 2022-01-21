@@ -1,13 +1,19 @@
 package ru.syntez.adapter.core.utils;
 
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IAdapterConverter;
 import ru.syntez.adapter.core.entities.IMessagePayload;
-import ru.syntez.adapter.core.exceptions.AdapterException;
+import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Реализация конвертации сообщений, для конкретных классов.
@@ -20,36 +26,55 @@ import java.lang.reflect.Method;
  */
 @Component
 @Primary
+@RequiredArgsConstructor
 public class AdapterConverterImpl implements IAdapterConverter {
 
-    //private final IMapStructConverter converter;
+    private final ApplicationContext applicationContext;
 
-    //public MapStructConverter(IMapStructConverter converter) {
-    //    this.converter = converter;
-    //}
+    public IMessagePayload convert(IMessagePayload messageReceived) {
 
-    public IMessagePayload convert(Class<?> outputMessageClass, IMessagePayload messageReceived) {
+        ITransformConfig transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
+
+        Class<?> outputMessageClass = transformConfig.outputMessageClass();
+        Map<String, Object> transformSchema = transformConfig.transformSchema();
 
         try {
+
             IMessagePayload outputMessage = (IMessagePayload) outputMessageClass.newInstance();
 
-            Method getDocId = messageReceived.getClass().getDeclaredMethod("getDocId");
-            Method getDocNote = messageReceived.getClass().getDeclaredMethod("getDocNote");
+            for (Map.Entry<String, Object> entry: transformSchema.entrySet()) {
+                String sourceMessageName = getPropertyByKey(entry.getValue(), "sourceMessageName");
+                String sourceFieldName = getPropertyByKey(entry.getValue(), "sourceFieldName");
+                String sourceFieldType = getPropertyByKey(entry.getValue(), "sourceFieldType");
+                String propertyName = entry.getKey();
 
-            Method setDocumentId = outputMessage.getClass().getDeclaredMethod("setDocumentId", Integer.class);
-            Method setDocumentDescription = outputMessage.getClass().getDeclaredMethod("setDocumentDescription", String.class);
-
-            setDocumentId.invoke(outputMessage, getDocId.invoke(messageReceived));
-            setDocumentDescription.invoke(outputMessage, getDocNote.invoke(messageReceived));
-
-            //LOG.info("Asyncapi kafka producer generated");
+                Method getFieldMethod = messageReceived.getClass().getDeclaredMethod("get" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1));
+                Method setFieldMethod = outputMessage.getClass().getDeclaredMethod("set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1),
+                        AsyncapiTypeConverter.getPropertyClassFromType(sourceFieldType));
+                setFieldMethod.invoke(outputMessage, getFieldMethod.invoke(messageReceived));
+            }
 
             return outputMessage;
+
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
         return null;
 
+    }
+
+    public IMessagePayload convert(List<IMessagePayload> messageReceived) {
+        return null;
+    }
+
+    private String getPropertyByKey(Object propertyMap, String key) {
+        if (propertyMap instanceof Map) {
+            val propertyValue = ((Map) propertyMap).get(key);
+            if (propertyValue != null) {
+                return propertyValue.toString();
+            }
+        }
+        throw new AsyncapiParserException(String.format("Asyncapi property not found by key %s!", key));
     }
 
 }

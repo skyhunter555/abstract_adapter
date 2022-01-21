@@ -8,6 +8,7 @@ import ru.syntez.adapter.config.IDataproviderKafkaConfig;
 import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
+import ru.syntez.adapter.core.entities.asyncapi.AsyncapiTypeEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
@@ -17,6 +18,8 @@ import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaConfigGenerator;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaProducerGenerator;
 import ru.syntez.adapter.dataproviders.transform.DynamicTransformConfigGenerator;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -40,34 +43,51 @@ public class GenerateTransformUsecase {
 
     public void execute() {
 
-        AsyncapiComponentMessageEntity messageOutput = getMessageOutput(asyncapiService);
+        Optional<AsyncapiComponentMessageEntity> messageOutputOptional = asyncapiService.getMessageOutput();
 
-        if (messageOutput.getPayload()!= null &&
-                messageOutput.getPayload().getTransform() != null) {
-
-            AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageOutput);
-            Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageOutput.getName());
-
-            ITransformConfig transformConfig = transformConfigGenerator.execute(messagePayloadClass);
-
-            LOG.info("Asyncapi transtormer generated");
-
+        //TODO Исходящего сообщения может и не быть, если включена какая то бизнес логика?
+        if (!messageOutputOptional.isPresent()) {
+            return;
         }
+
+        AsyncapiComponentMessageEntity messageOutput = messageOutputOptional.get();
+
+        AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageOutput);
+        Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageOutput.getName());
+
+        ITransformConfig transformConfig = transformConfigGenerator.execute(messagePayloadClass, getTransformSchema(messageOutput));
+        LOG.info("Asyncapi transtormer generated");
 
     }
 
     /**
-     * Получение настроек входящего сообщения
+     * Получение настроек трансформации для формирования исходящего сообщения
      *
-     * @param asyncapiService
+     * @param messageOutput
      * @return
      */
-    private AsyncapiComponentMessageEntity getMessageOutput(AsyncapiService asyncapiService) {
+    private Map<String, Object> getTransformSchema(AsyncapiComponentMessageEntity messageOutput) {
 
-        Optional<AsyncapiComponentMessageEntity> messageOutput = asyncapiService.getMessageOutput();
-        if (messageOutput.isPresent()) {
-            return messageOutput.get();
+        if (messageOutput.getPayload()!= null
+                && messageOutput.getPayload().getTransform() != null
+                && messageOutput.getPayload().getTransform().getReference() != null) {
+            Optional<AsyncapiComponentSchemaEntity> transformSchemaOptional = asyncapiService.getMessagePayload(messageOutput.getPayload().getTransform().getReference());
+            if (transformSchemaOptional.isPresent()) {
+
+                AsyncapiComponentSchemaEntity transformSchema = transformSchemaOptional.get();
+
+                if (transformSchema.getType() == null) {
+                    throw new AsyncapiParserException("Asyncapi message payload transformSchema type not found!");
+                }
+                if (transformSchema.getType() == AsyncapiTypeEnum.OBJECT &&
+                        (transformSchema.getProperties() == null || transformSchema.getProperties().getAdditionalProperties() == null)) {
+                    throw new AsyncapiParserException("Asyncapi message payload transformSchema properties not found!");
+                }
+                return transformSchema.getProperties().getAdditionalProperties();
+            }
         }
-        throw new AsyncapiParserException("Asyncapi kafka dataprovider messageOutput not found!");
+        //TODO Схемы трансформации сообщения может и не быть, если включена какая то бизнес логика?
+        //В этом случае никакой трансформации не произойдет и исходящее сообщение останется пустым
+        return new HashMap<>();
     }
 }

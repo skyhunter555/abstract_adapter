@@ -31,17 +31,14 @@ public class TransformUsecase {
     private static Logger LOG = LogManager.getLogger(TransformUsecase.class);
 
     private final IAdapterConverter converter;
-    private final ApplicationContext applicationContext;
 
     public TransformResult execute(IMessagePayload messageReceived) {
-
-        ITransformConfig transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
 
         TransformResult result = new TransformResult();
         List<IMessagePayload> messageList = new ArrayList<>();
 
         try {
-            messageList.add(converter.convert(transformConfig.outputMessageClass(), messageReceived));
+            messageList.add(converter.convert(messageReceived));
         } catch (AdapterException ex) {
             LOG.error(ex.getMessage());
             result.setResult(HandleMessageResult.ERROR);

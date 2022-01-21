@@ -14,7 +14,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.syntez.adapter.config.ITransformConfig;
+import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
+
 import java.lang.reflect.Modifier;
+import java.util.Map;
 
 /**
  * Генератор настроек трансформации
@@ -31,12 +34,13 @@ public class DynamicTransformConfigGenerator {
     private final DynamicTransformConfigImpl transformConfig;
 
     @SneakyThrows
-    public ITransformConfig execute(Class<?> outputMessagePayloadClass) {
+    public ITransformConfig execute(Class<?> outputMessagePayloadClass, Map<String, Object> transformSchema) {
 
         TransformConfigBeanImplementation.transformConfigImpl = transformConfig;
 
         //Задаем параметры конфигурации трансформера из настроек asyncapi
         transformConfig.setOutputMessageClass(outputMessagePayloadClass);
+        transformConfig.setTransformSchema(transformSchema);
 
         ITransformConfig transformConfig = new ByteBuddy()
                 .subclass(ITransformConfig.class)
@@ -48,6 +52,11 @@ public class DynamicTransformConfigGenerator {
                         .ofType(Primary.class) // don't use `request` mapping here
                         .build())
                 .defineMethod("outputMessageClass", Class.class, Modifier.PUBLIC)
+                .intercept(MethodDelegation.to(DynamicTransformConfigGenerator.TransformConfigBeanImplementation.class))
+                .annotateMethod(AnnotationDescription.Builder
+                        .ofType(Bean.class)
+                        .build())
+                .defineMethod("transformSchema", Map.class, Modifier.PUBLIC)
                 .intercept(MethodDelegation.to(DynamicTransformConfigGenerator.TransformConfigBeanImplementation.class))
                 .annotateMethod(AnnotationDescription.Builder
                         .ofType(Bean.class)
@@ -79,6 +88,10 @@ public class DynamicTransformConfigGenerator {
          */
         public static Class<?> outputMessageClass() {
             return transformConfigImpl.getOutputMessageClass();
+        }
+
+        public static Map<String, Object> transformSchema() {
+            return transformConfigImpl.getTransformSchema();
         }
 
     }
