@@ -9,6 +9,7 @@ import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.utils.AsyncapiService;
@@ -33,27 +34,31 @@ public class GenerateTransformUsecase {
     private final AsyncapiService asyncapiService;
     private final GenerateMessageClassUsecase generateMessageClass;
     private final DynamicTransformConfigGenerator transformConfigGenerator;
+    private final GetMessagePayloadUsecase getMessagePayload;
 
     private static Logger LOG = LogManager.getLogger(GenerateTransformUsecase.class);
 
     public void execute() {
 
-        //if (dataproviderServer.getProtocol() == null) {
-        //    throw new AsyncapiParserException("Asyncapi dataprovider protocol not found!");
-        //}
+        AsyncapiComponentMessageEntity messageOutput = getMessageOutput(asyncapiService);
 
-        //if (dataproviderServer.getProtocol() == AsyncapiProtocolEnum.kafka) {
+        if (messageOutput.getPayload()!= null &&
+                messageOutput.getPayload().getTransform() != null) {
 
-            Class<?> messagePayloadClass = generateMessageClass.execute(getMessageOutput(asyncapiService));
+            AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageOutput);
+            Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageOutput.getName());
+
             ITransformConfig transformConfig = transformConfigGenerator.execute(messagePayloadClass);
 
             LOG.info("Asyncapi transtormer generated");
-        //}
+
+        }
 
     }
 
     /**
      * Получение настроек входящего сообщения
+     *
      * @param asyncapiService
      * @return
      */

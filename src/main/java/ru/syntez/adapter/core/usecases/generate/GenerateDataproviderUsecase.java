@@ -28,7 +28,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GenerateDataproviderUsecase {
 
-    private final GenerateMessageClassUsecase generateMessageClass;
     private final DynamicKafkaConfigGenerator kafkaConfigGenerator;
     private final DynamicKafkaProducerGenerator kafkaProducerGenerator;
 
@@ -50,17 +49,4 @@ public class GenerateDataproviderUsecase {
 
     }
 
-    /**
-     * Получение настроек входящего сообщения
-     * @param asyncapiService
-     * @return
-     */
-    private AsyncapiComponentMessageEntity getMessageOutput(AsyncapiService asyncapiService) {
-
-        Optional<AsyncapiComponentMessageEntity> messageOutput = asyncapiService.getMessageOutput();
-        if (messageOutput.isPresent()) {
-            return messageOutput.get();
-        }
-        throw new AsyncapiParserException("Asyncapi kafka dataprovider messageOutput not found!");
-    }
 }

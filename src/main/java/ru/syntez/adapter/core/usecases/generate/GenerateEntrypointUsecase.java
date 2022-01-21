@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.utils.AsyncapiService;
@@ -31,6 +32,7 @@ public class GenerateEntrypointUsecase {
     private final GenerateMessageClassUsecase generateMessageClass;
     private final DynamicHttpControllerGenerator controllerGenerator;
     private final DynamicHttpControllerRegister httpControllerRegister;
+    private final GetMessagePayloadUsecase getMessagePayload;
 
     private static Logger LOG = LogManager.getLogger(GenerateEntrypointUsecase.class);
 
@@ -42,7 +44,9 @@ public class GenerateEntrypointUsecase {
 
         if (entrypointServer.getProtocol() == AsyncapiProtocolEnum.http) {
 
-            Class<?> messagePayloadClass = generateMessageClass.execute(getMessageReceived(asyncapiService));
+            AsyncapiComponentMessageEntity messageEntity = getMessageReceived(asyncapiService);
+            AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageEntity);
+            Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageEntity.getName());
             Object adapterHttpController = controllerGenerator.execute(messagePayloadClass);
             httpControllerRegister.execute(entrypointServer, adapterHttpController, messagePayloadClass);
 

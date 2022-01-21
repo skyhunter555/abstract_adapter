@@ -82,6 +82,7 @@ public class DynamicKafkaConfigGenerator {
         //Регистрируем новые бины конфигурации
         ConfigurableListableBeanFactory beanFactory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
         beanFactory.registerSingleton(kafkaConfig.getClass().getCanonicalName(), kafkaConfig);
+        //beanFactory.registerSingleton("producerFactory", kafkaConfig.producerFactory());
 
         log.info("Generated `KafkaConfig`: {}", kafkaConfig.getClass().getName());
         return kafkaConfig;
@@ -98,11 +99,13 @@ public class DynamicKafkaConfigGenerator {
             throw new AsyncapiParserException("Asyncapi Kafka dataprovider url not found!");
         }
 
-        if (serverKafka.getVariables() == null || serverKafka.getVariables().getPort() == null) {
+        if (serverKafka.getVariables() == null
+                || serverKafka.getVariables().getPort() == null
+                || serverKafka.getVariables().getPort().getDefaultValue() == null) {
             throw new AsyncapiParserException("Asyncapi Kafka dataprovider port not found!");
         }
 
-        return String.format("%s:%s", serverKafka.getUrl(), serverKafka.getVariables().getPort());
+        return String.format("%s:%s", serverKafka.getUrl(), serverKafka.getVariables().getPort().getDefaultValue());
     }
 
     /**
