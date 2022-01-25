@@ -1,6 +1,6 @@
 package ru.syntez.adapter.config;
 
-import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
 
 import java.util.Map;
 
@@ -14,6 +14,6 @@ public interface ITransformConfig {
 
     Class<?> outputMessageClass();
 
-    Map<String, Object> transformSchema();
+    Map<String, AsyncapiSchemaTransform> transformSchema();
 
 }

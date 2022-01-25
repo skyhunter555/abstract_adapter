@@ -47,8 +47,9 @@ channels:
       description: >
         Прием документа по http в формате json:
         {
-           "docId":0,
-           "docNote":"string"
+           "docId":125,
+           "docNote":"Платёжное поручение"
+           "sentAt":"2022-01-25 18:30:00'
         }
       tags:
         - name: SampleDocument
@@ -89,8 +90,8 @@ channels:
         Обработка входящего документа, включающая трансформацию и отправку в топик Кафка
         событие с ключом UUID и сообщением в формате json:
         {
-           "documentId":0,
-           "documentDescription":"string"
+          "documentId":"0000-125",
+          "documentDescription":"Платёжное поручение 125 от 2022-01-25 18:30:00"
         }
       tags:
         - name: SampleDocument
@@ -167,10 +168,18 @@ components:
       description: Схема транформации для получения исходящего документа
       properties:
         documentId:
-          sourceMessageName: SampleDocument
-          sourceFieldName: docId
-          sourceFieldType: integer
+          sourceFields:
+            - sourceField: 'SampleDocument.docId'
+              sourceFieldType: integer
+          resultFieldType: string
+          resultFieldPattern: "0000-%s"
         documentDescription:
-          sourceMessageName: SampleDocument
-          sourceFieldName: docNote
-          sourceFieldType: string
+          sourceFields:
+            - sourceField: 'SampleDocument.docNote'
+              sourceFieldType: string
+            - sourceField: 'SampleDocument.docId'
+              sourceFieldType: string
+            - sourceField: 'SampleDocument.sentAt'
+              sourceFieldType: string
+          resultFieldType: string
+          resultFieldPattern: "{0} {1} от {2}"

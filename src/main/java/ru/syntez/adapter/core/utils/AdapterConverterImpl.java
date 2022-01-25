@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IAdapterConverter;
 import ru.syntez.adapter.core.entities.IMessagePayload;
+import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
+import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransformSourceField;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -36,27 +38,28 @@ public class AdapterConverterImpl implements IAdapterConverter {
         ITransformConfig transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
 
         Class<?> outputMessageClass = transformConfig.outputMessageClass();
-        Map<String, Object> transformSchema = transformConfig.transformSchema();
+        Map<String, AsyncapiSchemaTransform> transformSchema = transformConfig.transformSchema();
 
         try {
 
             IMessagePayload outputMessage = (IMessagePayload) outputMessageClass.newInstance();
 
-            for (Map.Entry<String, Object> entry: transformSchema.entrySet()) {
-                String sourceMessageName = getPropertyByKey(entry.getValue(), "sourceMessageName");
-                String sourceFieldName = getPropertyByKey(entry.getValue(), "sourceFieldName");
-                String sourceFieldType = getPropertyByKey(entry.getValue(), "sourceFieldType");
+            for (Map.Entry<String, AsyncapiSchemaTransform> entry: transformSchema.entrySet()) {
+                //String sourceMessageName = getPropertyByKey(entry.getValue(), "sourceMessageName");
+                //String sourceFieldName = getPropertyByKey(entry.getValue(), "sourceFieldName");
+                //String sourceFieldType = getPropertyByKey(entry.getValue(), "sourceFieldType");
                 String propertyName = entry.getKey();
 
-                Method getFieldMethod = messageReceived.getClass().getDeclaredMethod("get" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1));
-                Method setFieldMethod = outputMessage.getClass().getDeclaredMethod("set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1),
-                        AsyncapiTypeConverter.getPropertyClassFromType(sourceFieldType));
-                setFieldMethod.invoke(outputMessage, getFieldMethod.invoke(messageReceived));
+                //Method getFieldMethod = messageReceived.getClass().getDeclaredMethod("get" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1));
+                //Method setFieldMethod = outputMessage.getClass().getDeclaredMethod("set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1),
+                //        AsyncapiTypeConverter.getPropertyClassFromType(sourceFieldType));
+                //setFieldMethod.invoke(outputMessage, getFieldMethod.invoke(messageReceived));
             }
 
             return outputMessage;
 
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+        //} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -65,16 +68,6 @@ public class AdapterConverterImpl implements IAdapterConverter {
 
     public IMessagePayload convert(List<IMessagePayload> messageReceived) {
         return null;
-    }
-
-    private String getPropertyByKey(Object propertyMap, String key) {
-        if (propertyMap instanceof Map) {
-            val propertyValue = ((Map) propertyMap).get(key);
-            if (propertyValue != null) {
-                return propertyValue.toString();
-            }
-        }
-        throw new AsyncapiParserException(String.format("Asyncapi property not found by key %s!", key));
     }
 
 }
