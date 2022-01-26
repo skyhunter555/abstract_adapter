@@ -3,10 +3,7 @@ package ru.syntez.adapter.core.usecases;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import ru.syntez.adapter.config.IDataproviderKafkaConfig;
-import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.components.IAdapterConverter;
 import ru.syntez.adapter.core.entities.IMessagePayload;
@@ -35,10 +32,10 @@ public class TransformUsecase {
     public TransformResult execute(IMessagePayload messageReceived) {
 
         TransformResult result = new TransformResult();
-        List<IMessagePayload> messageList = new ArrayList<>();
+        List<IMessagePayload> messageOutputList = new ArrayList<>();
 
         try {
-            messageList.add(converter.convert(messageReceived));
+            messageOutputList.add(converter.convert(messageReceived));
         } catch (AdapterException ex) {
             LOG.error(ex.getMessage());
             result.setResult(HandleMessageResult.ERROR);
@@ -47,7 +44,7 @@ public class TransformUsecase {
             result.setResult(HandleMessageResult.ERROR);
         }
 
-        result.setMessageOutputList(messageList);
+        result.setMessageOutputList(messageOutputList);
         return result;
     }
 

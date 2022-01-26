@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public interface ITransformConfig {
 
-    Class<?> outputMessageClass();
+    Class<?> messageOutputClass();
 
     Map<String, AsyncapiSchemaTransform> transformSchema();
 

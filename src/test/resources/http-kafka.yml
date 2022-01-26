@@ -175,12 +175,10 @@ components:
           sourceFields:
             - sourceField: 'SampleDocument.docId'
               sourceFieldType: integer
-          #resultFieldType: integer
         documentParentId:
           sourceFields:
             - sourceField: 'SampleDocument.docId'
               sourceFieldType: integer
-          #resultFieldType: string
           resultFieldPattern: "0000-%s"
         documentDescription:
           sourceFields:
@@ -190,5 +188,4 @@ components:
               sourceFieldType: integer
             - sourceField: 'SampleDocument.sentAt'
               sourceFieldType: string
-          #resultFieldType: string
           resultFieldPattern: "%s %s от %s"

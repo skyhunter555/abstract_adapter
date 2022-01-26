@@ -35,14 +35,14 @@ public class DynamicTransformConfigGenerator {
 
     @SneakyThrows
     public ITransformConfig execute(
-        Class<?> outputMessagePayloadClass,                    //Класс исходящего сообщения
+        Class<?> messageOutputPayloadClass,                    //Класс исходящего сообщения
         Map<String, AsyncapiSchemaTransform> transformSchema   //Схема трансформации
     ) {
 
         TransformConfigBeanImplementation.transformConfigImpl = transformConfig;
 
         //Задаем параметры конфигурации трансформера из настроек asyncapi
-        transformConfig.setOutputMessageClass(outputMessagePayloadClass);
+        transformConfig.setMessageOutputClass(messageOutputPayloadClass);
         transformConfig.setTransformSchema(transformSchema);
 
         ITransformConfig transformConfig = new ByteBuddy()
@@ -54,7 +54,7 @@ public class DynamicTransformConfigGenerator {
                 .annotateType(AnnotationDescription.Builder
                         .ofType(Primary.class) // don't use `request` mapping here
                         .build())
-                .defineMethod("outputMessageClass", Class.class, Modifier.PUBLIC)
+                .defineMethod("messageOutputClass", Class.class, Modifier.PUBLIC)
                 .intercept(MethodDelegation.to(DynamicTransformConfigGenerator.TransformConfigBeanImplementation.class))
                 .annotateMethod(AnnotationDescription.Builder
                         .ofType(Bean.class)
@@ -87,10 +87,10 @@ public class DynamicTransformConfigGenerator {
 
         /**
          * Delegates to:
-         * {@link DynamicTransformConfigImpl#getOutputMessageClass()}
+         * {@link DynamicTransformConfigImpl#getMessageOutputClass()}
          */
-        public static Class<?> outputMessageClass() {
-            return transformConfigImpl.getOutputMessageClass();
+        public static Class<?> messageOutputClass() {
+            return transformConfigImpl.getMessageOutputClass();
         }
 
         public static Map<String, AsyncapiSchemaTransform> transformSchema() {

@@ -48,6 +48,7 @@ public class DynamicKafkaProducerImpl {
             LOG.error("Unable to write message as json: " + e.getMessage());
             return HandleMessageResult.ERROR;
         }
+        LOG.info(String.format("Dataprovider sendMessage start: %s", message));
 
         ListenableFuture<SendResult<String, String>> future = kafkaConfig.kafkaTemplate().send(
                 new ProducerRecord<>(kafkaConfig.getTopicName(), messageKey, message)

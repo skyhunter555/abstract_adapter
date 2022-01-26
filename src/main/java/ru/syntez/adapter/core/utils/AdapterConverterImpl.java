@@ -2,6 +2,8 @@ package ru.syntez.adapter.core.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiAri
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransformSourceField;
 import ru.syntez.adapter.core.exceptions.AdapterException;
+import ru.syntez.adapter.core.usecases.generate.GenerateTransformUsecase;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,17 +36,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdapterConverterImpl implements IAdapterConverter {
 
+    private static Logger LOG = LogManager.getLogger(GenerateTransformUsecase.class);
+
     private final ApplicationContext applicationContext;
 
     public IMessagePayload convert(IMessagePayload messageReceived) {
 
         val transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
-        val outputMessageClass = transformConfig.outputMessageClass();
+        val messageOutputClass = transformConfig.messageOutputClass();
         val transformSchema = transformConfig.transformSchema();
 
-        IMessagePayload outputMessage = null;
+        IMessagePayload messageOutput = null;
         try {
-            outputMessage = (IMessagePayload) outputMessageClass.newInstance();
+            messageOutput = (IMessagePayload) messageOutputClass.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -51,9 +56,12 @@ public class AdapterConverterImpl implements IAdapterConverter {
         for (Map.Entry<String, AsyncapiSchemaTransform> entry : transformSchema.entrySet()) {
             val messageReceivedList = new ArrayList<IMessagePayload>();
             messageReceivedList.add(messageReceived);
-            setFieldValue(entry.getKey(), entry.getValue(), outputMessage, messageReceivedList);
+            setFieldValue(entry.getKey(), entry.getValue(), messageOutput, messageReceivedList);
         }
-        return outputMessage;
+
+        LOG.error(String.format("AdapterConverter transform message successfully: %s", messageOutputClass.getName()));
+
+        return messageOutput;
 
     }
 
@@ -70,7 +78,7 @@ public class AdapterConverterImpl implements IAdapterConverter {
     private void setFieldValue(
             String sourceFieldName,
             AsyncapiSchemaTransform schemaTransform,
-            IMessagePayload outputMessage,
+            IMessagePayload messageOutput,
             List<IMessagePayload> messageReceivedList
     ) {
 
@@ -89,7 +97,7 @@ public class AdapterConverterImpl implements IAdapterConverter {
                     sourceFieldValue.append(receivedValue.toString());
                 }
             }
-            invokeSetFieldMethod(outputMessage, sourceFieldName, sourceFieldValue.toString());
+            invokeSetFieldMethod(messageOutput, sourceFieldName, sourceFieldValue.toString());
         }
 
         //Заполнение целочисленного значения
@@ -113,7 +121,7 @@ public class AdapterConverterImpl implements IAdapterConverter {
             } else {
                 sourceFieldValue = (Integer) receivedValues.get(0);
             }
-            invokeSetFieldMethod(outputMessage, sourceFieldName, sourceFieldValue);
+            invokeSetFieldMethod(messageOutput, sourceFieldName, sourceFieldValue);
         }
         //Заполнение численного значения
         if (schemaTransform.getResultFieldClass() == Double.class) {
@@ -187,11 +195,11 @@ public class AdapterConverterImpl implements IAdapterConverter {
         }
     }
 
-    private void invokeSetFieldMethod(IMessagePayload outputMessage, String sourceFieldName, Object sourceFieldValue) {
+    private void invokeSetFieldMethod(IMessagePayload messageOutput, String sourceFieldName, Object sourceFieldValue) {
         try {
             String setFieldMethodName = "set" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1);
-            Method setFieldMethod = outputMessage.getClass().getDeclaredMethod(setFieldMethodName, sourceFieldValue.getClass());
-            setFieldMethod.invoke(outputMessage, sourceFieldValue);
+            Method setFieldMethod = messageOutput.getClass().getDeclaredMethod(setFieldMethodName, sourceFieldValue.getClass());
+            setFieldMethod.invoke(messageOutput, sourceFieldValue);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new AdapterException(String.format("AdapterConverter invoke method error: %s", e.getMessage()));

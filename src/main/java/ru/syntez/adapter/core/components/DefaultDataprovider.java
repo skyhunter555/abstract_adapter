@@ -5,7 +5,7 @@ import ru.syntez.adapter.core.entities.HandleMessageResult;
 import ru.syntez.adapter.core.entities.IMessagePayload;
 
 /**
- * Реализация дефалтного провайдера
+ * Реализация дефолтного провайдера
  *
  * @author Skyhunter
  * @date 27.12.2021

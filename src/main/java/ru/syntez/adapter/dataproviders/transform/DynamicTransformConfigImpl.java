@@ -15,7 +15,7 @@ import java.util.Map;
 public class DynamicTransformConfigImpl {
 
     private Map<String, AsyncapiSchemaTransform> transformSchema;
-    private Class<?> outputMessageClass;
+    private Class<?> messageOutputClass;
 
     public Map<String, AsyncapiSchemaTransform> getTransformSchema() {
         return transformSchema;
@@ -25,12 +25,11 @@ public class DynamicTransformConfigImpl {
         this.transformSchema = transformSchema;
     }
 
-    public Class<?> getOutputMessageClass() {
-        return outputMessageClass;
+    public Class<?> getMessageOutputClass() {
+        return messageOutputClass;
     }
 
-    public void setOutputMessageClass(Class<?> outputMessageClass) {
-        this.outputMessageClass = outputMessageClass;
+    public void setMessageOutputClass(Class<?> messageOutputClass) {
+        this.messageOutputClass = messageOutputClass;
     }
-
 }
