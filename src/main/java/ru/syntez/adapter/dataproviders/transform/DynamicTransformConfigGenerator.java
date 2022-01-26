@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import ru.syntez.adapter.config.ITransformConfig;
-import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
 
 import java.lang.reflect.Modifier;
@@ -35,7 +34,10 @@ public class DynamicTransformConfigGenerator {
     private final DynamicTransformConfigImpl transformConfig;
 
     @SneakyThrows
-    public ITransformConfig execute(Class<?> outputMessagePayloadClass, Map<String, AsyncapiSchemaTransform> transformSchema) {
+    public ITransformConfig execute(
+        Class<?> outputMessagePayloadClass,                    //Класс исходящего сообщения
+        Map<String, AsyncapiSchemaTransform> transformSchema   //Схема трансформации
+    ) {
 
         TransformConfigBeanImplementation.transformConfigImpl = transformConfig;
 

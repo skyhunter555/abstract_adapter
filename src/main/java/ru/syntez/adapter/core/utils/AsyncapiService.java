@@ -103,6 +103,7 @@ public class AsyncapiService {
      * Получение сущности payload сообщения
      * #/components/schemas/messageOutputPayload --> messageOutputPayload
      *
+     * TODO: Для ускорения процесса были приняты статичные наименования сообщений (sentAt). В дальнейшем надо брать их динамически.
      * @return
      */
     public Optional<AsyncapiComponentSchemaEntity> getMessagePayload(String payloadReference) {

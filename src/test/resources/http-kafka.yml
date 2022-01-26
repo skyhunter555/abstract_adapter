@@ -90,7 +90,8 @@ channels:
         Обработка входящего документа, включающая трансформацию и отправку в топик Кафка
         событие с ключом UUID и сообщением в формате json:
         {
-          "documentId":"0000-125",
+          "documentId":125,
+          "documentParentId":"0000-125",
           "documentDescription":"Платёжное поручение 125 от 2022-01-25 18:30:00"
         }
       tags:
@@ -156,6 +157,9 @@ components:
           format: int32
           minimum: 0
           description: Идентификатор документа.
+        documentParentId:
+          type: string
+          description: Идентификатор пачки документа.
         documentDescription:
           type: string
           description: Описание документа.
@@ -171,15 +175,20 @@ components:
           sourceFields:
             - sourceField: 'SampleDocument.docId'
               sourceFieldType: integer
-          resultFieldType: string
+          #resultFieldType: integer
+        documentParentId:
+          sourceFields:
+            - sourceField: 'SampleDocument.docId'
+              sourceFieldType: integer
+          #resultFieldType: string
           resultFieldPattern: "0000-%s"
         documentDescription:
           sourceFields:
             - sourceField: 'SampleDocument.docNote'
               sourceFieldType: string
             - sourceField: 'SampleDocument.docId'
-              sourceFieldType: string
+              sourceFieldType: integer
             - sourceField: 'SampleDocument.sentAt'
               sourceFieldType: string
-          resultFieldType: string
-          resultFieldPattern: "{0} {1} от {2}"
+          #resultFieldType: string
+          resultFieldPattern: "%s %s от %s"

@@ -5,21 +5,15 @@ import lombok.val;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-import ru.syntez.adapter.config.IDataproviderKafkaConfig;
 import ru.syntez.adapter.config.ITransformConfig;
-import ru.syntez.adapter.core.components.IDataprovider;
-import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiTypeEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.properties.AsyncapiMessageProperty;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransformSourceField;
-import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.utils.AsyncapiService;
-import ru.syntez.adapter.core.utils.AsyncapiTypeConverter;
-import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaConfigGenerator;
-import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaProducerGenerator;
 import ru.syntez.adapter.dataproviders.transform.DynamicTransformConfigGenerator;
 
 import java.util.ArrayList;
@@ -59,10 +53,15 @@ public class GenerateTransformUsecase {
 
         AsyncapiComponentMessageEntity messageOutput = messageOutputOptional.get();
 
-        AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageOutput);
-        Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageOutput.getName());
+        //Получение payloadSchema исходящего сообщения, со списком полей и их типом
+        val messagePayload = getMessagePayload.execute(messageOutput);
 
-        ITransformConfig transformConfig = transformConfigGenerator.execute(messagePayloadClass, getTransformSchema(messageOutput));
+        Class<?> messagePayloadClass = generateMessageClass.execute(messageOutput.getName(), messagePayload);
+
+        ITransformConfig transformConfig = transformConfigGenerator.execute(
+                messagePayloadClass,
+                getTransformSchema(messageOutput, messagePayload)
+        );
         LOG.info("Asyncapi transtormer generated");
 
     }
@@ -73,45 +72,59 @@ public class GenerateTransformUsecase {
      * @param messageOutput
      * @return
      */
-    private Map<String, AsyncapiSchemaTransform> getTransformSchema(AsyncapiComponentMessageEntity messageOutput) {
+    private Map<String, AsyncapiSchemaTransform> getTransformSchema(
+            AsyncapiComponentMessageEntity messageOutput, //Исходящее сообщение
+            Map<String, AsyncapiMessageProperty> messagePayload  //Список полей исходящего сообщения, для получения их типа
+    ) {
 
-        if (messageOutput.getPayload()!= null
-                && messageOutput.getPayload().getTransform() != null
-                && messageOutput.getPayload().getTransform().getReference() != null) {
-            Optional<AsyncapiComponentSchemaEntity> transformSchemaOptional = asyncapiService.getMessagePayload(messageOutput.getPayload().getTransform().getReference());
-            if (transformSchemaOptional.isPresent()) {
+        if (messageOutput.getPayload() == null
+                || messageOutput.getPayload().getTransform() == null
+                || messageOutput.getPayload().getTransform().getReference() == null) {
 
-                AsyncapiComponentSchemaEntity transformSchema = transformSchemaOptional.get();
+            //TODO Схемы трансформации сообщения может и не быть, если включена какая то бизнес логика?
+            //В этом случае никакой трансформации не произойдет и исходящее сообщение останется пустым
+            return new HashMap<>();
 
-                if (transformSchema.getType() == null) {
-                    throw new AsyncapiParserException("Asyncapi message payload transformSchema type not found!");
-                }
-                if (transformSchema.getType() == AsyncapiTypeEnum.OBJECT &&
-                        (transformSchema.getProperties() == null || transformSchema.getProperties().getAdditionalProperties() == null)) {
-                    throw new AsyncapiParserException("Asyncapi message payload transformSchema properties not found!");
-                }
-
-                Map<String, AsyncapiSchemaTransform> schemaTransformMap = new HashMap<>();
-                for (Map.Entry<String, Object> entry: transformSchema.getProperties().getAdditionalProperties().entrySet()) {
-                    AsyncapiSchemaTransform schemaTransform = new AsyncapiSchemaTransform();
-                    schemaTransform.setResultFieldType(
-                        AsyncapiTypeConverter.getPropertyClassFromType(
-                            tryGetStringPropertyByKey(entry.getValue(), "resultFieldType")
-                        )
-                    );
-                    schemaTransform.setResultFieldPattern(getStringPropertyByKey(entry.getValue(), "resultFieldPattern"));
-                    schemaTransform.setSourceFields(
-                            getSourceFieldsByKey(entry.getValue(), "sourceFields")
-                    );
-
-                    schemaTransformMap.put(entry.getKey(), schemaTransform);
-                }
-                return schemaTransformMap;
-            }
         }
-        //TODO Схемы трансформации сообщения может и не быть, если включена какая то бизнес логика?
-        //В этом случае никакой трансформации не произойдет и исходящее сообщение останется пустым
-        return new HashMap<>();
+        if (messagePayload == null) {
+            //TODO Если исходящее сообщение не объект и у него нет списка полей это отдельный случай
+            return new HashMap<>();
+        }
+
+        Optional<AsyncapiComponentSchemaEntity> transformSchemaOptional = asyncapiService.getMessagePayload(messageOutput.getPayload().getTransform().getReference());
+        if (!transformSchemaOptional.isPresent()) {
+            //Если нет ссылки на объект трансформации дальше работать не сможем
+            throw new AsyncapiParserException("Asyncapi message transformSchema payload reference not found!");
+        }
+
+        AsyncapiComponentSchemaEntity transformSchema = transformSchemaOptional.get();
+
+        if (transformSchema.getType() == null) {
+            throw new AsyncapiParserException("Asyncapi message payload transformSchema type not found!");
+        }
+        if (transformSchema.getType() == AsyncapiTypeEnum.OBJECT &&
+                (transformSchema.getProperties() == null || transformSchema.getProperties().getAdditionalProperties() == null)) {
+            throw new AsyncapiParserException("Asyncapi message payload transformSchema properties not found!");
+        }
+
+        Map<String, AsyncapiSchemaTransform> schemaTransformMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : transformSchema.getProperties().getAdditionalProperties().entrySet()) {
+            AsyncapiSchemaTransform schemaTransform = new AsyncapiSchemaTransform();
+
+            //Получаем класс для поля сообщения и проставляем в схему трансформации
+            AsyncapiMessageProperty messageProperty = messagePayload.get(entry.getKey());
+            if (messageProperty != null && messageProperty.getPropertyClass() != null) {
+                schemaTransform.setResultFieldClass(messageProperty.getPropertyClass());
+            }
+
+            schemaTransform.setResultFieldPattern(getStringPropertyByKey(entry.getValue(), "resultFieldPattern"));
+            schemaTransform.setSourceFields(
+                    getSourceFieldsByKey(entry.getValue(), "sourceFields")
+            );
+            schemaTransformMap.put(entry.getKey(), schemaTransform);
+        }
+        return schemaTransformMap;
+
     }
 
     private List<AsyncapiSchemaTransformSourceField> getSourceFieldsByKey(Object propertyMap, String key) {
@@ -120,15 +133,10 @@ public class GenerateTransformUsecase {
             val propertyValueList = ((Map) propertyMap).get(key);
             if (propertyValueList != null) {
                 if (propertyValueList instanceof ArrayList) {
-                    for (Object propertyValueMap: (ArrayList) propertyValueList) {
+                    for (Object propertyValueMap : (ArrayList) propertyValueList) {
                         if (propertyValueMap instanceof LinkedHashMap) {
                             AsyncapiSchemaTransformSourceField sourceField = new AsyncapiSchemaTransformSourceField();
                             sourceField.setSourceField(tryGetStringPropertyByKey(propertyValueMap, "sourceField"));
-                            sourceField.setSourceFieldType(
-                                AsyncapiTypeConverter.getPropertyClassFromType(
-                                     tryGetStringPropertyByKey(propertyValueMap, "sourceFieldType")
-                                )
-                            );
                             sourceFields.add(sourceField);
                         }
                     }

@@ -16,7 +16,7 @@ import java.util.List;
 public class AsyncapiSchemaTransform implements Serializable {
 
     private List<AsyncapiSchemaTransformSourceField> sourceFields;
-    private Class<?> resultFieldType;   // String.class
+    private Class<?> resultFieldClass;   // String.class
     private String resultFieldPattern;  // Платёжное поручение {0} от {1}
 
 }

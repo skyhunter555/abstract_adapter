@@ -4,16 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
-import ru.syntez.adapter.core.entities.IMessagePayload;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
-import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentSchemaEntity;
+import ru.syntez.adapter.core.entities.asyncapi.components.properties.AsyncapiMessageProperty;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
 import ru.syntez.adapter.core.utils.AsyncapiService;
 import ru.syntez.adapter.entrypoints.http.DynamicHttpControllerGenerator;
 import ru.syntez.adapter.entrypoints.http.DynamicHttpControllerRegister;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -45,8 +45,8 @@ public class GenerateEntrypointUsecase {
         if (entrypointServer.getProtocol() == AsyncapiProtocolEnum.http) {
 
             AsyncapiComponentMessageEntity messageEntity = getMessageReceived(asyncapiService);
-            AsyncapiComponentSchemaEntity messagePayloadSchema = getMessagePayload.execute(messageEntity);
-            Class<?> messagePayloadClass = generateMessageClass.execute(messagePayloadSchema, messageEntity.getName());
+            Map<String, AsyncapiMessageProperty> messagePayload = getMessagePayload.execute(messageEntity);
+            Class<?> messagePayloadClass = generateMessageClass.execute(messageEntity.getName(), messagePayload);
             Object adapterHttpController = controllerGenerator.execute(messagePayloadClass);
             httpControllerRegister.execute(entrypointServer, adapterHttpController, messagePayloadClass);
 

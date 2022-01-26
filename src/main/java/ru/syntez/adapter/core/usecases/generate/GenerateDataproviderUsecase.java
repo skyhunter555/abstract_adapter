@@ -7,15 +7,10 @@ import org.springframework.stereotype.Service;
 import ru.syntez.adapter.config.IDataproviderKafkaConfig;
 import ru.syntez.adapter.core.components.IDataprovider;
 import ru.syntez.adapter.core.entities.asyncapi.AsyncapiProtocolEnum;
-import ru.syntez.adapter.core.entities.asyncapi.components.AsyncapiComponentMessageEntity;
 import ru.syntez.adapter.core.entities.asyncapi.servers.AsyncapiServerEntity;
 import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
-import ru.syntez.adapter.core.utils.AsyncapiService;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaConfigGenerator;
 import ru.syntez.adapter.dataproviders.kafka.DynamicKafkaProducerGenerator;
-
-import java.util.Optional;
-
 /**
  * В зависимости от полученной конфигурации asyncapi
  * генерация компонентов контроллера исходящих сообщений:

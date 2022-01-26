@@ -8,12 +8,14 @@ import org.springframework.stereotype.Component;
 import ru.syntez.adapter.config.ITransformConfig;
 import ru.syntez.adapter.core.components.IAdapterConverter;
 import ru.syntez.adapter.core.entities.IMessagePayload;
+import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiArithmeticPatternEnum;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransform;
 import ru.syntez.adapter.core.entities.asyncapi.components.transform.AsyncapiSchemaTransformSourceField;
-import ru.syntez.adapter.core.exceptions.AsyncapiParserException;
+import ru.syntez.adapter.core.exceptions.AdapterException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,34 +37,23 @@ public class AdapterConverterImpl implements IAdapterConverter {
 
     public IMessagePayload convert(IMessagePayload messageReceived) {
 
-        ITransformConfig transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
+        val transformConfig = (ITransformConfig) applicationContext.getBean("TransformConfig");
+        val outputMessageClass = transformConfig.outputMessageClass();
+        val transformSchema = transformConfig.transformSchema();
 
-        Class<?> outputMessageClass = transformConfig.outputMessageClass();
-        Map<String, AsyncapiSchemaTransform> transformSchema = transformConfig.transformSchema();
-
+        IMessagePayload outputMessage = null;
         try {
-
-            IMessagePayload outputMessage = (IMessagePayload) outputMessageClass.newInstance();
-
-            for (Map.Entry<String, AsyncapiSchemaTransform> entry: transformSchema.entrySet()) {
-                //String sourceMessageName = getPropertyByKey(entry.getValue(), "sourceMessageName");
-                //String sourceFieldName = getPropertyByKey(entry.getValue(), "sourceFieldName");
-                //String sourceFieldType = getPropertyByKey(entry.getValue(), "sourceFieldType");
-                String propertyName = entry.getKey();
-
-                //Method getFieldMethod = messageReceived.getClass().getDeclaredMethod("get" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1));
-                //Method setFieldMethod = outputMessage.getClass().getDeclaredMethod("set" + propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1),
-                //        AsyncapiTypeConverter.getPropertyClassFromType(sourceFieldType));
-                //setFieldMethod.invoke(outputMessage, getFieldMethod.invoke(messageReceived));
-            }
-
-            return outputMessage;
-
-        //} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-        } catch (Exception e) {
+            outputMessage = (IMessagePayload) outputMessageClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
-        return null;
+
+        for (Map.Entry<String, AsyncapiSchemaTransform> entry : transformSchema.entrySet()) {
+            val messageReceivedList = new ArrayList<IMessagePayload>();
+            messageReceivedList.add(messageReceived);
+            setFieldValue(entry.getKey(), entry.getValue(), outputMessage, messageReceivedList);
+        }
+        return outputMessage;
 
     }
 
@@ -70,4 +61,140 @@ public class AdapterConverterImpl implements IAdapterConverter {
         return null;
     }
 
+    /**
+     * Проставление значения полю, из полей входящих сообщений, в соответствии со схемой трансформации
+     *
+     * @param sourceFieldName
+     * @param schemaTransform
+     */
+    private void setFieldValue(
+            String sourceFieldName,
+            AsyncapiSchemaTransform schemaTransform,
+            IMessagePayload outputMessage,
+            List<IMessagePayload> messageReceivedList
+    ) {
+
+        //Собираем значения из всех полей по списку
+        val receivedValues = getReceivedValues(schemaTransform, messageReceivedList);
+
+        //Заполнение строкового поля
+        if (schemaTransform.getResultFieldClass() == String.class) {
+
+            StringBuilder sourceFieldValue = new StringBuilder();
+            //Реализация шаблона строки
+            if (schemaTransform.getResultFieldPattern() != null) {
+                sourceFieldValue = new StringBuilder(String.format(schemaTransform.getResultFieldPattern(), receivedValues.toArray()));
+            } else {
+                for (Object receivedValue : receivedValues) {
+                    sourceFieldValue.append(receivedValue.toString());
+                }
+            }
+            invokeSetFieldMethod(outputMessage, sourceFieldName, sourceFieldValue.toString());
+        }
+
+        //Заполнение целочисленного значения
+        if (schemaTransform.getResultFieldClass() == Integer.class) {
+
+            Integer sourceFieldValue = null;
+
+            //суммируем значения всех полей
+            if (schemaTransform.getResultFieldPattern() != null
+                  && AsyncapiArithmeticPatternEnum.SUM.getCode().equals(schemaTransform.getResultFieldPattern())) {
+                sourceFieldValue = 0;
+                for (Object receivedValue : receivedValues) {
+                    if (receivedValue instanceof Integer) {
+                        sourceFieldValue = sourceFieldValue + (Integer) receivedValue;
+                    } else if (receivedValue instanceof String) {
+                        sourceFieldValue = sourceFieldValue + Integer.parseInt((String) receivedValue);
+                    }
+                }
+            //В общем случае, если нет шаблона берем первое значение из списка
+            //TODO сделать pattern count и т.д.
+            } else {
+                sourceFieldValue = (Integer) receivedValues.get(0);
+            }
+            invokeSetFieldMethod(outputMessage, sourceFieldName, sourceFieldValue);
+        }
+        //Заполнение численного значения
+        if (schemaTransform.getResultFieldClass() == Double.class) {
+            //TODO
+        }
+        //Заполнение логического значения
+        if (schemaTransform.getResultFieldClass() == Boolean.class) {
+            //TODO
+        }
+
+        //Заполнение объекта будет реализовано рекурсивно
+        if (schemaTransform.getResultFieldClass() == Object.class) {
+            //TODO
+        }
+
+    }
+
+    /**
+     * Собираем значения из всех полей по списку
+     *
+     * @param schemaTransform
+     * @param messageReceivedList
+     * @return
+     */
+    private List<Object> getReceivedValues(AsyncapiSchemaTransform schemaTransform, List<IMessagePayload> messageReceivedList) {
+        val receivedValues = new ArrayList<>();
+        for (AsyncapiSchemaTransformSourceField sourceField : schemaTransform.getSourceFields()) {
+            String[] reference = sourceField.getSourceField().split("\\.");
+            //Когда входящее сообщение одно - его класс можно не указывать (не рекомендуется)
+            if (reference.length == 1) {
+                if (messageReceivedList.size() > 1) {
+                    throw new AdapterException("AdapterConverter invoke method error: messageClassName more than one");
+                }
+                receivedValues.add(
+                        invokeGetFieldMethod(messageReceivedList.get(0), reference[0])
+                );
+                //Для плоских вариантов, без вложенных сущностей, когда сообщений более одного
+            } else if (reference.length == 2) {
+                String sourceFieldMessageClassName = reference[0];
+                String sourceFieldName = reference[1];
+                for (IMessagePayload messageReceived : messageReceivedList) {
+                    if (messageReceived.getClass().getName().equals(sourceFieldMessageClassName)) {
+                        receivedValues.add(
+                                invokeGetFieldMethod(messageReceived, sourceFieldName)
+                        );
+                    }
+                }
+                //TODO реализовать кейс, когда есть вложенные классы
+            } else if (reference.length > 2) {
+                throw new AdapterException("AdapterConverter invoke method for Object not implemented.");
+            }
+        }
+        return receivedValues;
+    }
+
+    /**
+     * Вызов метода get из входящего сообщения
+     *
+     * @param messageReceived
+     * @param sourceFieldName
+     * @return
+     */
+    private Object invokeGetFieldMethod(IMessagePayload messageReceived, String sourceFieldName) {
+        try {
+            String getFieldMethodName = "get" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1);
+            Method getFieldMethod = messageReceived.getClass().getDeclaredMethod(getFieldMethodName);
+            return getFieldMethod.invoke(messageReceived);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new AdapterException(String.format("AdapterConverter invoke method error: %s", e.getMessage()));
+        }
+    }
+
+    private void invokeSetFieldMethod(IMessagePayload outputMessage, String sourceFieldName, Object sourceFieldValue) {
+        try {
+            String setFieldMethodName = "set" + sourceFieldName.substring(0, 1).toUpperCase() + sourceFieldName.substring(1);
+            Method setFieldMethod = outputMessage.getClass().getDeclaredMethod(setFieldMethodName, sourceFieldValue.getClass());
+            setFieldMethod.invoke(outputMessage, sourceFieldValue);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new AdapterException(String.format("AdapterConverter invoke method error: %s", e.getMessage()));
+        }
+    }
 }
